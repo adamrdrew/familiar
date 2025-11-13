@@ -1,0 +1,219 @@
+# Suite Configuration Schema (suite.yaml)
+# This schema defines the contract for test suite configuration files.
+# Version: 1.0.0
+
+# Example valid suite.yaml:
+# ---
+# name: "User Authentication Flow"
+# timeout: 120
+# step_timeout: 30
+# retry_policy:
+#   type: "fixed"
+#   max_retries: 3
+#   delay: 1.0
+# fuzziness: 0.1
+# temperature: 0.7
+# headless: true
+# screenshot_on_failure: true
+# env:
+#   BASE_URL: "https://staging.example.com"
+#   TEST_USER: "qa@example.com"
+
+# JSON Schema for validation
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Familiar Test Suite Configuration",
+  "description": "Configuration schema for Familiar test suites",
+  "type": "object",
+  "required": ["name"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable suite name",
+      "minLength": 1,
+      "maxLength": 200,
+      "examples": [
+        "User Authentication Flow",
+        "E-commerce Checkout Process",
+        "Dashboard Navigation"
+      ]
+    },
+    "timeout": {
+      "type": "integer",
+      "description": "Total suite timeout in seconds",
+      "minimum": 1,
+      "maximum": 3600,
+      "default": 300,
+      "examples": [60, 120, 300]
+    },
+    "step_timeout": {
+      "type": "integer",
+      "description": "Default timeout per step in seconds",
+      "minimum": 1,
+      "maximum": 600,
+      "default": 30,
+      "examples": [15, 30, 60]
+    },
+    "retry_policy": {
+      "type": "object",
+      "description": "Retry strategy configuration",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["fixed", "exponential", "best_of_n"],
+          "description": "Type of retry strategy"
+        },
+        "max_retries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 3,
+          "description": "Maximum number of retry attempts (for fixed and exponential)"
+        },
+        "delay": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60,
+          "default": 1.0,
+          "description": "Delay between retries in seconds (for fixed)"
+        },
+        "base_delay": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60,
+          "default": 1.0,
+          "description": "Initial delay for exponential backoff"
+        },
+        "max_delay": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 300,
+          "default": 30.0,
+          "description": "Maximum delay for exponential backoff"
+        },
+        "multiplier": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 2.0,
+          "description": "Backoff multiplier for exponential"
+        },
+        "n_runs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Number of runs for best_of_n strategy"
+        }
+      },
+      "default": {
+        "type": "fixed",
+        "max_retries": 3,
+        "delay": 1.0
+      },
+      "examples": [
+        {
+          "type": "fixed",
+          "max_retries": 3,
+          "delay": 1.0
+        },
+        {
+          "type": "exponential",
+          "max_retries": 5,
+          "base_delay": 1.0,
+          "max_delay": 30.0,
+          "multiplier": 2.0
+        },
+        {
+          "type": "best_of_n",
+          "n_runs": 5
+        }
+      ]
+    },
+    "fuzziness": {
+      "type": "number",
+      "description": "Allowable failure percentage (0.0 = no failures, 1.0 = all can fail)",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 0.0,
+      "examples": [0.0, 0.1, 0.2]
+    },
+    "temperature": {
+      "type": "number",
+      "description": "AI improvisation level (0.0 = strict, 1.0 = creative)",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 0.7,
+      "examples": [0.3, 0.5, 0.7, 0.9]
+    },
+    "headless": {
+      "type": "boolean",
+      "description": "Run browser in headless mode (overrides global setting)",
+      "default": null,
+      "examples": [true, false]
+    },
+    "screenshot_on_failure": {
+      "type": "boolean",
+      "description": "Capture screenshots when steps fail",
+      "default": true,
+      "examples": [true, false]
+    },
+    "env": {
+      "type": "object",
+      "description": "Suite-specific environment variables",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {},
+      "examples": [
+        {
+          "BASE_URL": "https://staging.example.com",
+          "TEST_USER": "qa@example.com"
+        }
+      ]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional custom metadata (not used by Familiar)",
+      "additionalProperties": true,
+      "default": {},
+      "examples": [
+        {
+          "owner": "qa-team",
+          "priority": "critical",
+          "tags": ["auth", "smoke"]
+        }
+      ]
+    }
+  }
+}
+
+---
+# Validation Rules (enforced by Familiar)
+
+# 1. Cross-field validation
+#    - step_timeout MUST NOT exceed timeout
+#    - retry_policy.max_delay MUST be >= retry_policy.base_delay (if exponential)
+#    - retry_policy.n_runs MUST be specified if type is "best_of_n"
+
+# 2. File system validation
+#    - Suite directory MUST contain at least one step file (*.md)
+#    - Step files MUST follow naming convention: NN-name.md (where NN is 00-99)
+
+# 3. Environment variable validation
+#    - Variables referenced in steps (${VAR}) MUST be defined in:
+#      a) Suite env section
+#      b) Process environment variables
+#      c) Step-level defaults (${VAR:-default})
+
+# 4. Retry policy type-specific requirements
+#    - fixed: max_retries, delay
+#    - exponential: max_retries, base_delay, max_delay, multiplier
+#    - best_of_n: n_runs
+
+# Error Messages:
+# - Missing required field: "suite.yaml missing required field: name"
+# - Invalid value: "timeout must be positive integer, got: -5"
+# - Cross-field: "step_timeout (60) exceeds suite timeout (30)"
+# - Type mismatch: "fuzziness must be float between 0.0 and 1.0, got: 1.5"
+
