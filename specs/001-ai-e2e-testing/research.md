@@ -38,6 +38,7 @@ This document consolidates research findings and technical decisions for buildin
 **Rationale**:
 - Specifically designed for AI agent-driven browser interaction [(source)](https://github.com/browser-use/browser-use)
 - Built on Playwright (stable, well-maintained, cross-browser)
+- **Handles all browser control automatically** - we don't need to manage Chrome/Chromium or WebDriver
 - Async-first design matches our async architecture requirements
 - Provides high-level abstractions for AI agents while exposing low-level control
 - Active community and frequent updates (72.5k stars, 7,718 commits)
@@ -355,6 +356,14 @@ def discover_suites(root: Path) -> List[TestSuite]:
 
 ### browser-use Integration
 
+**Important**: browser-use wraps Playwright and handles all browser control automatically. We do NOT need to:
+- Manually install or configure Chrome/Chromium
+- Implement browser control logic
+- Manage browser lifecycle directly
+- Handle WebDriver setup
+
+browser-use manages all of this internally via Playwright.
+
 **Core Integration Points**:
 
 1. **Agent Initialization**:
@@ -362,6 +371,7 @@ def discover_suites(root: Path) -> List[TestSuite]:
 from browser_use import Agent, Browser, ChatBrowserUse
 
 async def create_agent(step: TestStep, config: SuiteConfig) -> Agent:
+    # browser-use handles Chrome/Chromium setup automatically via Playwright
     browser = Browser(
         headless=config.headless,
         # browser-use reads LLM config from env vars

@@ -7,6 +7,19 @@
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
+## Current Progress
+
+**Status**: Foundation complete, ready for User Story 1 implementation
+
+- ✅ **Phase 1 (Setup)**: 9/9 complete (T010 skipped - browser-use handles Chromium automatically)
+- ✅ **Phase 2 (Foundational)**: 35/46 complete
+  - ✅ All models and core parsers implemented
+  - ✅ Test suite discovery working
+  - ✅ Basic CLI framework in place
+  - ⏳ Missing: Some CLI tests, test fixtures
+- ⏳ **Phase 3 (User Story 1)**: Ready to start - 0/22 complete
+- ⏸️ **Remaining phases**: Blocked until User Story 1 complete
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
@@ -33,7 +46,7 @@
 - [x] T007 Create directory structure (src/familiar/{cli,core,models,formatters,logging,utils}/__init__.py)
 - [x] T008 Create test directory structure (tests/{unit,integration,contract,fixtures}/__init__.py)
 - [x] T009 Install dependencies with uv sync
-- [ ] T010 [P] Install Chromium for browser-use (playwright install chromium)
+- [ ] T010 [P] ~~Install Chromium for browser-use~~ (SKIPPED - browser-use handles this automatically via Playwright)
 
 **Checkpoint**: Project structure ready, dependencies installed
 
@@ -65,36 +78,36 @@
 
 ### Core Parsers
 
-- [ ] T023 Create SuiteParser class in src/familiar/core/parser.py
-- [ ] T024 Add parse_suite method to load suite.yaml and step files in src/familiar/core/parser.py
-- [ ] T025 Add _parse_config method using PyYAML in src/familiar/core/parser.py
-- [ ] T026 Add _parse_steps method to find NN-*.md files in src/familiar/core/parser.py
-- [ ] T027 Add _parse_step method to load markdown content in src/familiar/core/parser.py
+- [x] T023 Create SuiteParser class in src/familiar/core/parser.py
+- [x] T024 Add parse_suite method to load suite.yaml and step files in src/familiar/core/parser.py
+- [x] T025 Add _parse_config method using PyYAML in src/familiar/core/parser.py
+- [x] T026 Add _parse_steps method to find NN-*.md files in src/familiar/core/parser.py
+- [x] T027 Add _parse_step method to load markdown content in src/familiar/core/parser.py
 
 ### Parser Tests
 
-- [ ] T028 [P] Test parse_suite with valid suite directory in tests/unit/test_parser.py
-- [ ] T029 [P] Test parse_suite error handling (missing suite.yaml) in tests/unit/test_parser.py
-- [ ] T030 [P] Test step file discovery and ordering in tests/unit/test_parser.py
+- [x] T028 [P] Test parse_suite with valid suite directory in tests/unit/test_parser.py
+- [x] T029 [P] Test parse_suite error handling (missing suite.yaml) in tests/unit/test_parser.py
+- [x] T030 [P] Test step file discovery and ordering in tests/unit/test_parser.py
 
 ### Discovery
 
-- [ ] T031 Create TestSuiteDiscovery class in src/familiar/core/discovery.py
-- [ ] T032 Add discover_suites method using rglob for suite.yaml in src/familiar/core/discovery.py
-- [ ] T033 Add error handling for malformed suites (continue discovery) in src/familiar/core/discovery.py
+- [x] T031 Create TestSuiteDiscovery class in src/familiar/core/discovery.py
+- [x] T032 Add discover_suites method using rglob for suite.yaml in src/familiar/core/discovery.py
+- [x] T033 Add error handling for malformed suites (continue discovery) in src/familiar/core/discovery.py
 
 ### Discovery Tests
 
-- [ ] T034 [P] Test discover_suites finds multiple suites in tests/unit/test_discovery.py
-- [ ] T035 [P] Test discovery skips shared directory in tests/unit/test_discovery.py
+- [x] T034 [P] Test discover_suites finds multiple suites in tests/unit/test_discovery.py
+- [x] T035 [P] Test discovery skips shared directory in tests/unit/test_discovery.py
 
 ### CLI Foundation
 
-- [ ] T036 Create CLI entry point with Click in src/familiar/cli/main.py
-- [ ] T037 Add version option and help text in src/familiar/cli/main.py
-- [ ] T038 Create __main__.py entry point for python -m familiar in src/familiar/__main__.py
-- [ ] T039 Configure entry point in pyproject.toml [project.scripts]
-- [ ] T040 Install package in editable mode (uv pip install -e .)
+- [x] T036 Create CLI entry point with Click in src/familiar/cli/main.py
+- [x] T037 Add version option and help text in src/familiar/cli/main.py
+- [x] T038 Create __main__.py entry point for python -m familiar in src/familiar/__main__.py
+- [x] T039 Configure entry point in pyproject.toml [project.scripts]
+- [x] T040 Install package in editable mode (uv pip install -e .)
 
 ### CLI Tests
 
@@ -103,7 +116,7 @@
 
 ### Test Fixtures
 
-- [ ] T043 Create pytest conftest.py with temp directory fixture in tests/conftest.py
+- [x] T043 Create pytest conftest.py with temp directory fixture in tests/conftest.py
 - [ ] T044 [P] Create sample suite fixture in tests/fixtures/sample-suite/
 - [ ] T045 [P] Create sample suite.yaml in tests/fixtures/sample-suite/suite.yaml
 - [ ] T046 [P] Create sample step files in tests/fixtures/sample-suite/00-login.md and 01-dashboard.md

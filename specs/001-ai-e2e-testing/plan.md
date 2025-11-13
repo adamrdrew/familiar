@@ -9,7 +9,9 @@
 
 Familiar is a CLI tool that enables natural language-based end-to-end testing for web applications. Built on top of the browser-use library, it provides an opinionated test suite structure, robust retry mechanisms, comprehensive logging, and CI/CD integration. Users write test steps in Markdown with natural language instructions, organize them into YAML-configured suites, and execute them via a Python CLI that orchestrates browser-use agents.
 
-**Technical Approach**: Python 3.11 CLI application using browser-use for browser automation, Click for CLI framework, PyYAML for configuration parsing, and structured logging. Package distribution via PyPI/uv with optional Homebrew support.
+**Technical Approach**: Python 3.11 CLI application using browser-use for browser automation (which wraps Playwright and handles all browser control automatically), Click for CLI framework, PyYAML for configuration parsing, and structured logging. Package distribution via PyPI/uv with optional Homebrew support.
+
+**Important**: browser-use manages Chrome/Chromium installation and browser lifecycle via Playwright - we do NOT implement any browser control ourselves.
 
 ## Technical Context
 
