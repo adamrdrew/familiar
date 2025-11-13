@@ -97,6 +97,7 @@ async def run_all_suites_async(
     # Run each suite
     runner = SuiteRunner(headless=headless)
     results = []
+    formatter = TextFormatter(verbose=verbose)
     
     for i, suite in enumerate(suites, 1):
         click.echo(f"[{i}/{len(suites)}] Running: {suite.name}")
@@ -107,6 +108,12 @@ async def run_all_suites_async(
         status_icon = "✓" if result.success else "✗"
         status_color = "green" if result.success else "red"
         click.echo(f"  {status_icon} {suite.name}: {result.passed_tests}/{result.total_tests} passed")
+        
+        # Show detailed results if verbose
+        if verbose:
+            click.echo("")  # Add blank line
+            formatter.print(result)
+            click.echo("")  # Add blank line
     
     # Display summary
     click.echo("\n" + "=" * 60)
