@@ -1,8 +1,10 @@
 # Familiar
 
-![Fammy the Mascot](docs/images/fammy.png)
+
 
 <div align="center">
+
+<img src="docs/images/fammy.png" alt="Fammy the Mascot" width="250">
 
 **AI-Driven End-to-End Testing for Complex Web Applications**
 
