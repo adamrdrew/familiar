@@ -95,7 +95,7 @@ pip install familiar
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/familiar.git
+git clone https://github.com/adamrdrew/familiar.git
 cd familiar
 uv sync  # or: pip install -e .
 ```
@@ -598,7 +598,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development setup and guidel
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/familiar.git
+git clone https://github.com/adamrdrew/familiar.git
 cd familiar
 
 # Install dependencies
@@ -646,8 +646,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 ## 📬 Support
 
 - 📖 [Documentation](docs/)
-- 🐛 [Issue Tracker](https://github.com/yourusername/familiar/issues)
-- 💬 [Discussions](https://github.com/yourusername/familiar/discussions)
+- 🐛 [Issue Tracker](https://github.com/adamrdrew/familiar/issues)
+- 💬 [Discussions](https://github.com/adamrdrew/familiar/discussions)
 
 ---
 
