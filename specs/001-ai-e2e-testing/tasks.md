@@ -24,15 +24,15 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create Python project structure with uv (pyproject.toml, .python-version, src/familiar/, tests/)
-- [ ] T002 Configure pyproject.toml with dependencies (browser-use, click, pydantic, pyyaml, rich)
-- [ ] T003 [P] Configure development dependencies (pytest, pytest-asyncio, pytest-cov, mypy, ruff)
-- [ ] T004 [P] Create .env.example with environment variable template
-- [ ] T005 [P] Create .gitignore for Python project (venv, __pycache__, .env, etc.)
-- [ ] T006 [P] Create README.md with project overview and installation instructions
-- [ ] T007 Create directory structure (src/familiar/{cli,core,models,formatters,logging,utils}/__init__.py)
-- [ ] T008 Create test directory structure (tests/{unit,integration,contract,fixtures}/__init__.py)
-- [ ] T009 Install dependencies with uv sync
+- [x] T001 Create Python project structure with uv (pyproject.toml, .python-version, src/familiar/, tests/)
+- [x] T002 Configure pyproject.toml with dependencies (browser-use, click, pydantic, pyyaml, rich)
+- [x] T003 [P] Configure development dependencies (pytest, pytest-asyncio, pytest-cov, mypy, ruff)
+- [x] T004 [P] Create .env.example with environment variable template
+- [x] T005 [P] Create .gitignore for Python project (venv, __pycache__, .env, etc.)
+- [x] T006 [P] Create README.md with project overview and installation instructions
+- [x] T007 Create directory structure (src/familiar/{cli,core,models,formatters,logging,utils}/__init__.py)
+- [x] T008 Create test directory structure (tests/{unit,integration,contract,fixtures}/__init__.py)
+- [x] T009 Install dependencies with uv sync
 - [ ] T010 [P] Install Chromium for browser-use (playwright install chromium)
 
 **Checkpoint**: Project structure ready, dependencies installed
@@ -47,21 +47,21 @@
 
 ### Models (Data Structures)
 
-- [ ] T011 [P] Create SuiteConfig model with Pydantic validation in src/familiar/models/suite.py
-- [ ] T012 [P] Create RetryPolicyConfig model in src/familiar/models/suite.py
-- [ ] T013 [P] Create TestSuite dataclass in src/familiar/models/suite.py
-- [ ] T014 [P] Create TestStep dataclass with name/variables properties in src/familiar/models/step.py
-- [ ] T015 [P] Create LogEntry and LogLevel enums in src/familiar/models/result.py
-- [ ] T016 [P] Create BrowserAction and ActionType enums in src/familiar/models/result.py
-- [ ] T017 [P] Create TestResult dataclass in src/familiar/models/result.py
-- [ ] T018 [P] Create SuiteResult dataclass with computed properties in src/familiar/models/result.py
-- [ ] T019 [P] Create TestRun dataclass in src/familiar/models/result.py
+- [x] T011 [P] Create SuiteConfig model with Pydantic validation in src/familiar/models/suite.py
+- [x] T012 [P] Create RetryPolicyConfig model in src/familiar/models/suite.py
+- [x] T013 [P] Create TestSuite dataclass in src/familiar/models/suite.py
+- [x] T014 [P] Create TestStep dataclass with name/variables properties in src/familiar/models/step.py
+- [x] T015 [P] Create LogEntry and LogLevel enums in src/familiar/models/result.py
+- [x] T016 [P] Create BrowserAction and ActionType enums in src/familiar/models/result.py
+- [x] T017 [P] Create TestResult dataclass in src/familiar/models/result.py
+- [x] T018 [P] Create SuiteResult dataclass with computed properties in src/familiar/models/result.py
+- [x] T019 [P] Create TestRun dataclass in src/familiar/models/result.py
 
 ### Model Tests
 
-- [ ] T020 [P] Test SuiteConfig validation (timeout constraints) in tests/unit/test_models.py
-- [ ] T021 [P] Test TestStep name extraction and variable parsing in tests/unit/test_models.py
-- [ ] T022 [P] Test SuiteResult success calculation with fuzziness in tests/unit/test_models.py
+- [x] T020 [P] Test SuiteConfig validation (timeout constraints) in tests/unit/test_models.py
+- [x] T021 [P] Test TestStep name extraction and variable parsing in tests/unit/test_models.py
+- [x] T022 [P] Test SuiteResult success calculation with fuzziness in tests/unit/test_models.py
 
 ### Core Parsers
 
