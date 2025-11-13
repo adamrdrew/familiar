@@ -1,5 +1,7 @@
 # Familiar
 
+![Fammy the Mascot](docs/images/fammy.png)
+
 <div align="center">
 
 **AI-Driven End-to-End Testing for Complex Web Applications**
