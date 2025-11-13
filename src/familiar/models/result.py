@@ -27,6 +27,14 @@ class ActionType(Enum):
     EVALUATE = "evaluate"
 
 
+class ResultStatus(Enum):
+    """Test result status enumeration."""
+
+    PASSED = "passed"
+    FAILED = "failed"
+    SKIPPED = "skipped"
+
+
 @dataclass
 class LogEntry:
     """Single log entry."""
@@ -55,14 +63,19 @@ class TestResult:
     """Result of executing a test step."""
 
     step_name: str
-    step_path: Path
-    success: bool
+    status: ResultStatus
     duration: float
-    attempt: int
     logs: List[LogEntry] = field(default_factory=list)
-    error: Optional[str] = None
     browser_actions: List[BrowserAction] = field(default_factory=list)
+    error_message: Optional[str] = None
+    step_path: Optional[Path] = None
+    attempt: int = 1
     screenshot_path: Optional[Path] = None
+
+    @property
+    def success(self) -> bool:
+        """Check if test passed."""
+        return self.status == ResultStatus.PASSED
 
     @property
     def passed(self) -> bool:
@@ -71,8 +84,8 @@ class TestResult:
 
     @property
     def failed(self) -> bool:
-        """Inverse of success."""
-        return not self.success
+        """Check if test failed."""
+        return self.status == ResultStatus.FAILED
 
     @property
     def retry_count(self) -> int:
@@ -85,43 +98,57 @@ class SuiteResult:
     """Result of executing a test suite."""
 
     suite_name: str
-    suite_path: Path
-    step_results: List[TestResult]
-    duration: float
-    started_at: datetime
-    completed_at: datetime
-    config_fuzziness: float = 0.0
+    test_results: List[TestResult]
+    total_duration: float
+    fuzziness: float = 0.0
+    suite_path: Optional[Path] = None
+    run_timestamp: datetime = field(default_factory=datetime.now)
+    config: Dict[str, Any] = field(default_factory=dict)
 
     @property
     def success(self) -> bool:
         """Check if suite passed based on fuzziness."""
-        if not self.step_results:
+        if not self.test_results:
             return False
-        pass_rate = self.passed_count / self.total_count
-        required_pass_rate = 1.0 - self.config_fuzziness
-        return pass_rate >= required_pass_rate
+        if self.fuzziness == 0.0:
+            return self.failed_tests == 0
+        # Allow some failures based on fuzziness
+        failure_rate = self.failed_tests / self.total_tests
+        return failure_rate <= self.fuzziness
 
     @property
-    def total_count(self) -> int:
-        """Total number of steps."""
-        return len(self.step_results)
+    def status(self) -> ResultStatus:
+        """Get overall status of the suite."""
+        if self.success:
+            return ResultStatus.PASSED
+        return ResultStatus.FAILED
 
     @property
-    def passed_count(self) -> int:
-        """Number of passed steps."""
-        return sum(1 for r in self.step_results if r.success)
+    def total_tests(self) -> int:
+        """Total number of tests."""
+        return len(self.test_results)
 
     @property
-    def failed_count(self) -> int:
-        """Number of failed steps."""
-        return sum(1 for r in self.step_results if not r.success)
+    def passed_tests(self) -> int:
+        """Number of passed tests."""
+        return sum(1 for r in self.test_results if r.status == ResultStatus.PASSED)
 
     @property
-    def pass_rate(self) -> float:
-        """Pass rate as percentage (0.0 - 1.0)."""
-        if self.total_count == 0:
+    def failed_tests(self) -> int:
+        """Number of failed tests."""
+        return sum(1 for r in self.test_results if r.status == ResultStatus.FAILED)
+
+    @property
+    def skipped_tests(self) -> int:
+        """Number of skipped tests."""
+        return sum(1 for r in self.test_results if r.status == ResultStatus.SKIPPED)
+
+    @property
+    def success_rate(self) -> float:
+        """Success rate as percentage (0.0 - 100.0)."""
+        if self.total_tests == 0:
             return 0.0
-        return self.passed_count / self.total_count
+        return (self.passed_tests / self.total_tests) * 100.0
 
 
 @dataclass

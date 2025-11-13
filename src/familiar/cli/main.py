@@ -26,14 +26,24 @@ def cli() -> None:
     help="Output format",
 )
 @click.option("--headless/--headed", default=True, help="Browser display mode")
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed logs")
 def run(
-    suite_path_or_name: Optional[str], run_all: bool, format: str, headless: bool
+    suite_path_or_name: Optional[str],
+    run_all: bool,
+    format: str,
+    headless: bool,
+    verbose: bool,
 ) -> None:
     """Run test suites."""
-    click.echo(f"Running tests (format={format}, headless={headless})")
-
-    # TODO: Implement execution
-    click.echo("Implementation in progress...")
+    from familiar.cli.run import run_suite_command
+    
+    run_suite_command(
+        suite_path_or_name=suite_path_or_name,
+        run_all=run_all,
+        format=format,
+        headless=headless,
+        verbose=verbose,
+    )
 
 
 @cli.command()

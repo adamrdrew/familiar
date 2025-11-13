@@ -85,82 +85,79 @@ def test_test_step_extracts_variables() -> None:
 
 def test_test_result_properties() -> None:
     """Test TestResult computed properties."""
+    from familiar.models.result import ResultStatus
+    
     result = TestResult(
         step_name="Login",
-        step_path=Path("00-login.md"),
-        success=True,
+        status=ResultStatus.PASSED,
         duration=5.2,
         attempt=2,
     )
     assert result.passed is True
     assert result.failed is False
+    assert result.success is True
     assert result.retry_count == 1
 
 
 def test_suite_result_success_with_zero_fuzziness() -> None:
     """Test suite success with no fuzziness."""
+    from familiar.models.result import ResultStatus
+    
     result1 = TestResult(
         step_name="Step 1",
-        step_path=Path("00-step.md"),
-        success=True,
+        status=ResultStatus.PASSED,
         duration=1.0,
-        attempt=1,
     )
     result2 = TestResult(
         step_name="Step 2",
-        step_path=Path("01-step.md"),
-        success=False,
+        status=ResultStatus.FAILED,
         duration=1.0,
-        attempt=1,
     )
 
     suite_result = SuiteResult(
         suite_name="Test",
-        suite_path=Path("test"),
-        step_results=[result1, result2],
-        duration=2.0,
-        started_at=datetime.now(),
-        completed_at=datetime.now(),
-        config_fuzziness=0.0,
+        test_results=[result1, result2],
+        total_duration=2.0,
+        fuzziness=0.0,
     )
 
-    assert suite_result.total_count == 2
-    assert suite_result.passed_count == 1
-    assert suite_result.failed_count == 1
-    assert suite_result.pass_rate == 0.5
+    assert suite_result.total_tests == 2
+    assert suite_result.passed_tests == 1
+    assert suite_result.failed_tests == 1
+    assert suite_result.success_rate == 50.0
     assert not suite_result.success  # 50% < 100% required
 
 
 def test_suite_result_success_with_fuzziness() -> None:
     """Test suite success calculation with fuzziness."""
+    from familiar.models.result import ResultStatus
+    
     result1 = TestResult(
         step_name="Step 1",
-        step_path=Path("00-step.md"),
-        success=True,
+        status=ResultStatus.PASSED,
         duration=1.0,
-        attempt=1,
     )
     result2 = TestResult(
         step_name="Step 2",
-        step_path=Path("01-step.md"),
-        success=False,
+        status=ResultStatus.FAILED,
         duration=1.0,
-        attempt=1,
     )
 
-    # 50% pass rate, 10% fuzziness (90% required) = FAIL
+    # 50% failure rate, 10% fuzziness (allow 10% failures) = FAIL
     suite_result = SuiteResult(
         suite_name="Test",
-        suite_path=Path("test"),
-        step_results=[result1, result2],
-        duration=2.0,
-        started_at=datetime.now(),
-        completed_at=datetime.now(),
-        config_fuzziness=0.1,
+        test_results=[result1, result2],
+        total_duration=2.0,
+        fuzziness=0.1,
     )
     assert not suite_result.success
 
-    # 50% pass rate, 50% fuzziness (50% required) = PASS
-    suite_result.config_fuzziness = 0.5
-    assert suite_result.success
+    # 50% failure rate, 50% fuzziness (allow 50% failures) = PASS
+    suite_result2 = SuiteResult(
+        suite_name="Test",
+        test_results=[result1, result2],
+        total_duration=2.0,
+        fuzziness=0.5,
+    )
+    assert suite_result2.success
 

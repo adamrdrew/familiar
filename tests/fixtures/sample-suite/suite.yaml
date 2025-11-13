@@ -1,0 +1,12 @@
+name: Sample Test Suite
+description: A simple test suite for testing
+timeout: 300
+step_timeout: 60
+retry_policy:
+  type: fixed
+  max_retries: 2
+  delay: 1.0
+fuzziness: 0.0
+temperature: 0.5
+headless: true
+
