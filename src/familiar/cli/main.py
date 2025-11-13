@@ -6,12 +6,15 @@ from typing import Optional
 import click
 
 from familiar.core.discovery import TestSuiteDiscovery
+from familiar.utils.dotenv import load_dotenv_file
 
 
 @click.group()
 @click.version_option(version="0.1.0")
 def cli() -> None:
     """Familiar: AI-driven end-to-end testing tool."""
+    # Load .env file from current directory if it exists
+    load_dotenv_file()
     pass
 
 

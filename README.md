@@ -106,7 +106,22 @@ uv sync  # or: pip install -e .
 
 ### 1. Set Up Your LLM Provider
 
-Choose and configure your LLM provider:
+Choose and configure your LLM provider using environment variables or a `.env` file:
+
+**Option A: Using a .env file (recommended)**
+
+Create a `.env` file in your project root:
+
+```bash
+# .env
+FAMILIAR_MODEL_PROVIDER=anthropic
+FAMILIAR_MODEL=claude-3-5-sonnet-20241022
+ANTHROPIC_API_KEY=your-api-key
+```
+
+Familiar automatically loads `.env` files from your current directory!
+
+**Option B: Using environment variables**
 
 ```bash
 # For Anthropic Claude (recommended)
@@ -182,6 +197,17 @@ Confirm that the main navigation menu is visible
 ```
 
 ### 3. Set Test Environment Variables
+
+**Using .env file (recommended)**:
+
+```bash
+# Add to your .env file
+BASE_URL=https://your-app.com
+TEST_USER=test@example.com
+TEST_PASSWORD=securepassword123
+```
+
+**Or using environment variables**:
 
 ```bash
 export BASE_URL="https://your-app.com"
@@ -420,6 +446,76 @@ Show version information.
 
 ```bash
 familiar --version
+```
+
+---
+
+## 📄 Using .env Files
+
+Familiar automatically loads environment variables from a `.env` file in your current directory. This makes configuration easier and more secure:
+
+### Creating a .env File
+
+```bash
+# Create .env file in your project root
+cat > .env << EOF
+# LLM Configuration
+FAMILIAR_MODEL_PROVIDER=anthropic
+FAMILIAR_MODEL=claude-3-5-sonnet-20241022
+ANTHROPIC_API_KEY=your-api-key-here
+
+# Application URLs
+BASE_URL=https://staging.example.com
+API_URL=https://api.staging.example.com
+
+# Test Credentials  
+TEST_USER=test@example.com
+TEST_PASSWORD=securepassword123
+ADMIN_USER=admin@example.com
+ADMIN_PASSWORD=adminpass456
+
+# Custom Variables
+PROJECT_NAME=Test Project
+TIMEOUT=30
+EOF
+```
+
+### Important Notes
+
+- ✅ `.env` files are loaded automatically - no setup needed
+- ✅ Existing environment variables take precedence over `.env` values (secure)
+- ✅ Missing `.env` file is fine - not required
+- ⚠️ **Always add `.env` to your `.gitignore`!**
+
+### Example `.gitignore`
+
+```
+# Environment files with secrets
+.env
+.env.local
+.env.*.local
+
+# Keep example file
+!.env.example
+```
+
+### Using with Different Environments
+
+```bash
+# Local development
+.env                  # Local credentials
+
+# CI/CD
+# Use system environment variables instead
+
+# Multiple environments
+.env.development      # Development config
+.env.staging          # Staging config
+.env.production       # Production config
+
+# Load specific file:
+cp .env.staging .env
+familiar run tests/
 ```
 
 ---
