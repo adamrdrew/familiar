@@ -5,6 +5,8 @@ Auto-generated from all feature plans. Last updated: 2025-11-13
 ## Active Technologies
 - Python 3.11 + browser-use (Playwright-based browser automation with multi-provider LLM support), Click (CLI framework), PyYAML (config parsing), rich (terminal UI), pydantic (config validation), python-dotenv (automatic .env file loading) (001-ai-e2e-testing)
 - File-based (Markdown test steps, YAML suite configs, JSON/JUnit XML results output) (001-ai-e2e-testing)
+- Python 3.11+ + browser-use (with native model providers), playwrigh (002-fix-langchain-browser-use-models)
+- N/A (bug fix only) (002-fix-langchain-browser-use-models)
 
 ## Project Structure
 
@@ -37,6 +39,7 @@ uv run mypy src/                # Type check
 Python 3.11: Follow PEP 8, use type hints, write docstrings for public APIs
 
 ## Recent Changes
+- 002-fix-langchain-browser-use-models: Added Python 3.11+ + browser-use (with native model providers), playwrigh
 - 001-ai-e2e-testing: Added Python 3.11 + browser-use (Playwright-based browser automation with multi-provider LLM support), Click (CLI framework), PyYAML (config parsing), rich (terminal UI), pydantic (config validation)
 - Enhancement 002: Added python-dotenv for automatic .env file loading
 
