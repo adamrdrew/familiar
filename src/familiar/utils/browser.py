@@ -7,18 +7,17 @@ from browser_use import Agent, Browser
 def create_llm(temperature: float = 0.5) -> Any:
     """Create LLM client based on FAMILIAR_MODEL_PROVIDER environment variable.
     
-    Supports multiple LLM providers through langchain:
-    - openai: OpenAI models (requires langchain-openai)
-    - anthropic: Anthropic Claude models (requires langchain-anthropic)
-    - google/gemini: Google Gemini models (requires langchain-google-genai)
-    - ollama: Local Ollama models (requires langchain-ollama)
+    Supports multiple LLM providers through browser-use:
+    - openai: OpenAI models (requires OPENAI_API_KEY)
+    - anthropic: Anthropic Claude models (requires ANTHROPIC_API_KEY)
+    - google/gemini: Google Gemini models (requires GOOGLE_API_KEY)
+    - ollama: Local Ollama models (optional OLLAMA_HOST)
+    - browser-use: Browser Use optimized model (requires BROWSER_USE_API_KEY)
+    - groq: Groq models (requires GROQ_API_KEY)
+    - azure: Azure OpenAI (requires AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY)
     
     The model is specified via FAMILIAR_MODEL env var.
-    Provider-specific auth is handled via their standard env vars:
-    - OpenAI: OPENAI_API_KEY
-    - Anthropic: ANTHROPIC_API_KEY
-    - Google: GOOGLE_API_KEY
-    - Ollama: OLLAMA_HOST (optional)
+    Provider-specific auth is handled via their standard env vars.
     
     Args:
         temperature: LLM temperature for response variability (0.0-1.0).
@@ -28,11 +27,11 @@ def create_llm(temperature: float = 0.5) -> Any:
     
     Raises:
         ValueError: If model provider is not supported or required env vars are missing.
-        ImportError: If required langchain package is not installed.
+        ImportError: If browser-use package is not installed.
     
     Example:
         >>> os.environ["FAMILIAR_MODEL_PROVIDER"] = "anthropic"
-        >>> os.environ["FAMILIAR_MODEL"] = "claude-3-5-sonnet-20241022"
+        >>> os.environ["FAMILIAR_MODEL"] = "claude-sonnet-4-0"
         >>> os.environ["ANTHROPIC_API_KEY"] = "sk-ant-..."
         >>> llm = create_llm(temperature=0.7)
     """
@@ -41,9 +40,9 @@ def create_llm(temperature: float = 0.5) -> Any:
     
     if provider == "openai":
         try:
-            from langchain_openai import ChatOpenAI
+            from browser_use import ChatOpenAI
         except ImportError:
-            raise ImportError("langchain-openai package required for OpenAI provider. Install with: pip install langchain-openai")
+            raise ImportError("browser-use package required. Install with: pip install browser-use")
         
         if not os.getenv("OPENAI_API_KEY"):
             raise ValueError("OPENAI_API_KEY environment variable required for OpenAI provider")
@@ -54,46 +53,84 @@ def create_llm(temperature: float = 0.5) -> Any:
     
     elif provider == "anthropic":
         try:
-            from langchain_anthropic import ChatAnthropic
+            from browser_use import ChatAnthropic
         except ImportError:
-            raise ImportError("langchain-anthropic package required for Anthropic provider. Install with: pip install langchain-anthropic")
+            raise ImportError("browser-use package required. Install with: pip install browser-use")
         
         if not os.getenv("ANTHROPIC_API_KEY"):
             raise ValueError("ANTHROPIC_API_KEY environment variable required for Anthropic provider")
         return ChatAnthropic(
-            model=model or "claude-3-5-sonnet-20241022",
+            model=model or "claude-sonnet-4-0",
             temperature=temperature,
         )
     
     elif provider in ("google", "gemini"):
         try:
-            from langchain_google_genai import ChatGoogleGenerativeAI
+            from browser_use import ChatGoogle
         except ImportError:
-            raise ImportError("langchain-google-genai package required for Google provider. Install with: pip install langchain-google-genai")
+            raise ImportError("browser-use package required. Install with: pip install browser-use")
         
         if not os.getenv("GOOGLE_API_KEY"):
             raise ValueError("GOOGLE_API_KEY environment variable required for Google provider")
-        return ChatGoogleGenerativeAI(
-            model=model or "gemini-2.0-flash-exp",
+        return ChatGoogle(
+            model=model or "gemini-flash-latest",
             temperature=temperature,
         )
     
     elif provider == "ollama":
         try:
-            from langchain_ollama import ChatOllama
+            from browser_use import ChatOllama
         except ImportError:
-            raise ImportError("langchain-ollama package required for Ollama provider. Install with: pip install langchain-ollama")
+            raise ImportError("browser-use package required. Install with: pip install browser-use")
         
         # Ollama doesn't require API key, just OLLAMA_HOST (optional)
         return ChatOllama(
-            model=model or "llama3.2",
+            model=model or "llama3.1:8b",
+            temperature=temperature,
+        )
+    
+    elif provider == "browser-use":
+        try:
+            from browser_use import ChatBrowserUse
+        except ImportError:
+            raise ImportError("browser-use package required. Install with: pip install browser-use")
+        
+        if not os.getenv("BROWSER_USE_API_KEY"):
+            raise ValueError("BROWSER_USE_API_KEY environment variable required for Browser Use provider")
+        return ChatBrowserUse(
+            temperature=temperature,
+        )
+    
+    elif provider == "groq":
+        try:
+            from browser_use import ChatGroq
+        except ImportError:
+            raise ImportError("browser-use package required. Install with: pip install browser-use")
+        
+        if not os.getenv("GROQ_API_KEY"):
+            raise ValueError("GROQ_API_KEY environment variable required for Groq provider")
+        return ChatGroq(
+            model=model or "llama-4-maverick-17b-128e-instruct",
+            temperature=temperature,
+        )
+    
+    elif provider == "azure":
+        try:
+            from browser_use import ChatAzureOpenAI
+        except ImportError:
+            raise ImportError("browser-use package required. Install with: pip install browser-use")
+        
+        if not os.getenv("AZURE_OPENAI_ENDPOINT") or not os.getenv("AZURE_OPENAI_API_KEY"):
+            raise ValueError("AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY environment variables required for Azure OpenAI provider")
+        return ChatAzureOpenAI(
+            model=model or "gpt-4o",
             temperature=temperature,
         )
     
     else:
         raise ValueError(
             f"Unsupported model provider: {provider}. "
-            f"Supported providers: openai, anthropic, google, gemini, ollama"
+            f"Supported providers: openai, anthropic, google, gemini, ollama, browser-use, groq, azure"
         )
 
 

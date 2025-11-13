@@ -50,10 +50,13 @@ AI-driven tests are inherently non-deterministic. Familiar handles this with:
 - **Fuzziness**: Tolerate a percentage of step failures
 
 ### Multi-Provider LLM Support
-Configure your preferred LLM provider via environment variables:
-- **Anthropic Claude** (Claude 3.5 Sonnet, Opus, Haiku)
-- **OpenAI** (GPT-4, GPT-4o, GPT-3.5)
+Configure your preferred LLM provider via environment variables (powered by [browser-use](https://browser-use.com)):
+- **Browser Use** (Optimized browser automation model - 3-5x faster)
+- **Anthropic Claude** (Claude 4 Sonnet, Opus, Haiku)
+- **OpenAI** (GPT-4, GPT-4o, O3)
 - **Google Gemini** (Gemini 2.0 Flash, Pro)
+- **Groq** (Fast inference with Llama models)
+- **Azure OpenAI** (Enterprise OpenAI deployment)
 - **Ollama** (Local open-source models)
 
 ### CI/CD Integration
@@ -124,9 +127,13 @@ Familiar automatically loads `.env` files from your current directory!
 **Option B: Using environment variables**
 
 ```bash
-# For Anthropic Claude (recommended)
+# For Browser Use (recommended - fastest, optimized for browser automation)
+export FAMILIAR_MODEL_PROVIDER="browser-use"
+export BROWSER_USE_API_KEY="your-api-key"  # Get from https://cloud.browser-use.com
+
+# For Anthropic Claude
 export FAMILIAR_MODEL_PROVIDER="anthropic"
-export FAMILIAR_MODEL="claude-3-5-sonnet-20241022"
+export FAMILIAR_MODEL="claude-sonnet-4-0"
 export ANTHROPIC_API_KEY="your-api-key"
 
 # For OpenAI
@@ -134,9 +141,19 @@ export FAMILIAR_MODEL_PROVIDER="openai"
 export FAMILIAR_MODEL="gpt-4o"
 export OPENAI_API_KEY="your-api-key"
 
+# For Groq (fast inference)
+export FAMILIAR_MODEL_PROVIDER="groq"
+export FAMILIAR_MODEL="llama-4-maverick-17b-128e-instruct"
+export GROQ_API_KEY="your-api-key"
+
+# For Azure OpenAI
+export FAMILIAR_MODEL_PROVIDER="azure"
+export AZURE_OPENAI_ENDPOINT="https://your-endpoint.openai.azure.com/"
+export AZURE_OPENAI_API_KEY="your-api-key"
+
 # For Ollama (local)
 export FAMILIAR_MODEL_PROVIDER="ollama"
-export FAMILIAR_MODEL="llama3.2"
+export FAMILIAR_MODEL="llama3.1:8b"
 # No API key needed
 ```
 
@@ -355,13 +372,17 @@ metadata:
 
 **LLM Configuration:**
 ```bash
-FAMILIAR_MODEL_PROVIDER   # openai, anthropic, google, gemini, ollama
-FAMILIAR_MODEL            # Model name (e.g., gpt-4o, claude-3-5-sonnet-20241022)
+FAMILIAR_MODEL_PROVIDER   # browser-use, openai, anthropic, google, gemini, groq, azure, ollama
+FAMILIAR_MODEL            # Model name (e.g., gpt-4o, claude-sonnet-4-0, gemini-flash-latest)
 
 # Provider-specific API keys
+BROWSER_USE_API_KEY      # For Browser Use (recommended)
 OPENAI_API_KEY           # For OpenAI
 ANTHROPIC_API_KEY        # For Anthropic
 GOOGLE_API_KEY           # For Google/Gemini
+GROQ_API_KEY             # For Groq
+AZURE_OPENAI_ENDPOINT    # For Azure OpenAI
+AZURE_OPENAI_API_KEY     # For Azure OpenAI
 OLLAMA_HOST              # For Ollama (optional, defaults to localhost)
 ```
 
@@ -459,10 +480,14 @@ Familiar automatically loads environment variables from a `.env` file in your cu
 ```bash
 # Create .env file in your project root
 cat > .env << EOF
-# LLM Configuration
-FAMILIAR_MODEL_PROVIDER=anthropic
-FAMILIAR_MODEL=claude-3-5-sonnet-20241022
-ANTHROPIC_API_KEY=your-api-key-here
+# LLM Configuration (choose one provider)
+FAMILIAR_MODEL_PROVIDER=browser-use  # or: anthropic, openai, google, groq, azure, ollama
+BROWSER_USE_API_KEY=your-api-key-here  # Get from https://cloud.browser-use.com
+
+# Alternative provider example (uncomment to use):
+# FAMILIAR_MODEL_PROVIDER=anthropic
+# FAMILIAR_MODEL=claude-sonnet-4-0
+# ANTHROPIC_API_KEY=your-api-key-here
 
 # Application URLs
 BASE_URL=https://staging.example.com
