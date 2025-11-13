@@ -19,12 +19,18 @@
   - ✅ All tests passing (43 passed, 1 skipped)
 - ✅ **Phase 3 (User Story 1 - MVP)**: 22/22 complete (T047-T068)
   - ✅ Tests written first (TDD approach)
-  - ✅ Utilities: environment variables, interpolation, browser-use integration
+  - ✅ Utilities: environment variables, interpolation, **multi-provider LLM support**
   - ✅ Executor and Runner: step execution with error handling
   - ✅ Formatters: Rich terminal output
   - ✅ CLI run command fully functional
   - ✅ Exit code handling (0 for success, 1 for failure)
+  - ✅ **Architecture**: 15+ LLM providers via browser-use's native model classes
 - ⏳ **Phase 4+ (User Stories 2-5)**: Ready to implement - 0/78 remaining
+
+**Recent Updates**:
+- ✨ Updated to use browser-use's native model classes (ChatOpenAI, ChatAnthropic, ChatGoogle, etc.)
+- ✨ Added FAMILIAR_MODEL_PROVIDER for provider selection (browseruse, openai, anthropic, gemini, azure, groq, ollama)
+- ✨ Supports all browser-use providers: no need to maintain our own LLM integration code
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -151,8 +157,8 @@
 - [x] T051 [P] [US1] Create environment variable parser in src/familiar/utils/env.py
 - [x] T052 [P] [US1] Create variable interpolation module in src/familiar/utils/interpolation.py
 - [x] T053 [US1] Add interpolate_variables method to resolve ${VAR} syntax in src/familiar/utils/interpolation.py
-- [x] T054 [P] [US1] Create browser-use client setup helpers in src/familiar/utils/browser.py
-- [x] T055 [US1] Add create_browser_use_agent factory function in src/familiar/utils/browser.py
+- [x] T054 [P] [US1] Create multi-provider LLM factory using browser-use's native model classes in src/familiar/utils/browser.py
+- [x] T055 [US1] Add create_browser_use_agent factory with provider selection (FAMILIAR_MODEL_PROVIDER) in src/familiar/utils/browser.py
 - [x] T056 [US1] Create StepExecutor class for browser-use integration in src/familiar/core/executor.py
 - [x] T057 [US1] Add execute_step async method wrapping browser-use Agent in src/familiar/core/executor.py
 - [x] T058 [US1] Add error handling and logging to StepExecutor in src/familiar/core/executor.py
@@ -453,6 +459,23 @@ With multiple developers:
 - Stop at any checkpoint to validate story independently
 - Tests are included because Familiar is a testing tool - we must practice what we preach
 - All tasks follow constitutional principles: small classes, clear interfaces, behavior tests
+
+### LLM Provider Architecture
+
+**Implementation**: Tasks T054-T055 implement multi-provider LLM support via browser-use's native model classes.
+
+**Key Design Decisions**:
+- ✅ Use browser-use's `ChatOpenAI`, `ChatAnthropic`, `ChatGoogle`, etc. - NOT langchain directly
+- ✅ Factory pattern in `create_llm()` returns appropriate browser-use model class
+- ✅ Provider selection via `FAMILIAR_MODEL_PROVIDER` env var
+- ✅ Model selection via `FAMILIAR_MODEL` env var
+- ✅ API keys use browser-use's conventions (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.)
+- ✅ Supports 15+ providers: browseruse, openai, anthropic, gemini, azure, groq, ollama, aws, oci, and more
+- ✅ Future providers added automatically via browser-use updates
+
+**References**:
+- Supported models: https://github.com/browser-use/browser-use/blob/main/docs/supported-models.mdx
+- Browser Use Cloud (optimized model): https://browser-use.com/posts/speed-matters
 
 ---
 

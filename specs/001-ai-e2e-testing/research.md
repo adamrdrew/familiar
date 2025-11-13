@@ -94,14 +94,68 @@ def run(suite_or_path, format):
     pass
 ```
 
-### 4. Configuration via Environment Variables
+### 4. LLM Provider Support via browser-use
+
+**Decision**: Use browser-use's native model classes for all LLM providers, not langchain or manual LLM setup.
+
+**Rationale**:
+- browser-use supports 15+ LLM providers natively [(source)](https://github.com/browser-use/browser-use/blob/main/docs/supported-models.mdx)
+- Each provider has an optimized integration: `ChatOpenAI`, `ChatAnthropic`, `ChatGoogle`, `ChatGroq`, `ChatOllama`, `ChatBrowserUse`, etc.
+- browser-use handles all provider-specific quirks and API differences
+- We inherit browser-use's environment variable conventions
+- No need to maintain our own LLM integration code
+- Future provider support comes automatically via browser-use updates
+
+**Supported Providers** (from browser-use):
+1. **browseruse**: `ChatBrowserUse` - Optimized in-house model (3-5x faster) [(source)](https://browser-use.com/posts/speed-matters)
+2. **openai**: `ChatOpenAI` - GPT-4, GPT-3.5, O1, O3 models
+3. **anthropic**: `ChatAnthropic` - Claude models (Sonnet, Opus, Haiku)
+4. **gemini**: `ChatGoogle` - Google Gemini models  
+5. **azure**: `ChatAzureOpenAI` - Azure OpenAI service
+6. **groq**: `ChatGroq` - Fast inference for Llama, Mixtral
+7. **ollama**: `ChatOllama` - Local models (Llama3, Mistral)
+8. **aws**: `ChatAWSBedrock`, `ChatAnthropicBedrock` - AWS Bedrock
+9. **oci**: `ChatOCIRaw` - Oracle Cloud Infrastructure models
+10. **qwen**: Via `ChatOpenAI` with custom base_url
+11. **deepseek**, **novita**, **openrouter**: Via OpenAI-compatible API
+
+**Architecture**:
+- `FAMILIAR_MODEL_PROVIDER` env var selects which provider to use
+- `FAMILIAR_MODEL` env var specifies the model name
+- Provider API keys use browser-use's standard env vars (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.)
+- Familiar's `create_llm()` function acts as a factory that returns the appropriate browser-use model class
+- No direct langchain imports - browser-use handles this internally
+
+**Example Implementation**:
+```python
+from browser_use import ChatOpenAI, ChatAnthropic, ChatGoogle, ChatBrowserUse
+
+def create_llm(provider: str, model: str, temperature: float):
+    """Factory function to create LLM client based on provider."""
+    if provider == "browseruse":
+        return ChatBrowserUse()  # Uses BROWSER_USE_API_KEY
+    elif provider == "openai":
+        return ChatOpenAI(model=model)  # Uses OPENAI_API_KEY
+    elif provider == "anthropic":
+        return ChatAnthropic(model=model)  # Uses ANTHROPIC_API_KEY
+    elif provider == "gemini":
+        return ChatGoogle(model=model)  # Uses GOOGLE_API_KEY
+    # ... etc for all providers
+```
+
+**Environment Variables**:
+- Familiar uses `FAMILIAR_MODEL_PROVIDER` and `FAMILIAR_MODEL`
+- All provider API keys inherit from browser-use conventions
+- This ensures compatibility with browser-use examples and documentation
+
+### 5. Configuration via Environment Variables
 
 **Decision**: All configuration via environment variables, no required config files.
 
 **Rationale**:
 - 12-factor app principles (config in environment)
 - CI/CD friendly (no file management required)
-- browser-use already uses env vars for LLM configuration
+- browser-use already uses env vars for LLM and provider configuration
 - Consistent with modern CLI tools (Docker, kubectl, etc.)
 - Easy secret management (CI secrets inject as env vars)
 
@@ -114,11 +168,19 @@ FAMILIAR_DEFAULT_TIMEOUT=30           # Default step timeout (seconds)
 FAMILIAR_DEFAULT_RETRIES=3            # Default retry count
 FAMILIAR_HEADLESS=true                # Browser headless mode
 
-# browser-use Configuration (passed through)
-BROWSER_USE_API_KEY=xxx               # Browser-use cloud API key
-OPENAI_API_KEY=xxx                    # OpenAI for LLM
-ANTHROPIC_API_KEY=xxx                 # Claude for LLM
-# ... other LLM providers
+# LLM Provider Selection
+FAMILIAR_MODEL_PROVIDER=openai        # LLM provider: browseruse, openai, anthropic, gemini, azure, groq, ollama, etc.
+FAMILIAR_MODEL=gpt-4                  # Model name (provider-specific)
+
+# Provider-Specific Keys (browser-use native env vars)
+BROWSER_USE_API_KEY=xxx               # Browser-use cloud (ChatBrowserUse)
+OPENAI_API_KEY=xxx                    # OpenAI (ChatOpenAI)
+ANTHROPIC_API_KEY=xxx                 # Anthropic (ChatAnthropic)
+GOOGLE_API_KEY=xxx                    # Google Gemini (ChatGoogle)
+AZURE_OPENAI_API_KEY=xxx              # Azure (ChatAzureOpenAI)
+AZURE_OPENAI_ENDPOINT=xxx             # Azure endpoint
+GROQ_API_KEY=xxx                      # Groq (ChatGroq)
+# ... all browser-use supported providers
 ```
 
 **Override Order**:
