@@ -1,12 +1,13 @@
 """Step execution with browser-use integration."""
 import asyncio
 from datetime import datetime
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 import traceback
+
+from browser_use import Browser, Agent
 
 from familiar.models.step import TestStep
 from familiar.models.result import TestResult, ResultStatus, LogEntry, LogLevel, BrowserAction, ActionType
-from familiar.utils.browser import create_browser_use_agent
 from familiar.utils.interpolation import interpolate_variables
 from familiar.core.retry import RetryPolicy, FixedRetry
 
@@ -14,45 +15,47 @@ from familiar.core.retry import RetryPolicy, FixedRetry
 class StepExecutor:
     """Executes individual test steps using browser-use agents.
     
+    Now accepts browser and LLM instances from runner for session persistence.
+    
     Responsibilities:
-    - Create browser-use agents for each step
-    - Execute steps with proper error handling
+    - Execute steps using provided browser session
+    - Handle errors and retries
     - Capture logs and browser actions
     - Return structured test results
     """
     
     def __init__(
         self,
-        headless: bool = True,
-        temperature: float = 0.5,
         variables: Optional[Dict[str, str]] = None,
         retry_policy: Optional[RetryPolicy] = None,
     ):
         """Initialize the step executor.
         
+        Browser and LLM are now passed per-step for session reuse.
+        
         Args:
-            headless: Whether to run browser in headless mode.
-            temperature: LLM temperature for agent decision making.
             variables: Environment variables for step interpolation.
             retry_policy: Retry policy for failed steps.
         """
-        self.headless = headless
-        self.temperature = temperature
         self.variables = variables or {}
         self.retry_policy = retry_policy or FixedRetry(max_retries=0, delay=0.0)
     
     async def execute_step(
         self,
         step: TestStep,
+        browser: Browser,
+        llm: Any,
         timeout: int = 60,
     ) -> TestResult:
         """Execute a single test step with retry support.
         
-        Attempts to execute the step, retrying on failure according to
-        the configured retry policy. Logs all attempts.
+        Uses the provided browser session, enabling cumulative testing
+        where browser state persists across steps.
         
         Args:
             step: The test step to execute.
+            browser: Browser instance to use for this step.
+            llm: LLM client instance to use for this step.
             timeout: Maximum execution time in seconds.
         
         Returns:
@@ -70,7 +73,7 @@ class StepExecutor:
                     timestamp=datetime.now(),
                 ))
             
-            result = await self._execute_step_once(step, timeout, attempt + 1)
+            result = await self._execute_step_once(step, browser, llm, timeout, attempt + 1)
             
             # Merge logs from this attempt
             all_logs.extend(result.logs)
@@ -95,13 +98,19 @@ class StepExecutor:
     async def _execute_step_once(
         self,
         step: TestStep,
+        browser: Browser,
+        llm: Any,
         timeout: int,
         attempt: int,
     ) -> TestResult:
         """Execute a single attempt of a test step.
         
+        Uses provided browser and LLM instances for session persistence.
+        
         Args:
             step: The test step to execute.
+            browser: Browser instance to use.
+            llm: LLM client instance to use.
             timeout: Maximum execution time in seconds.
             attempt: Current attempt number (1-indexed).
         
@@ -129,17 +138,17 @@ class StepExecutor:
                 timestamp=datetime.now(),
             ))
             
-            # Create browser-use agent
+            # Create agent with existing browser and LLM
             logs.append(LogEntry(
                 level=LogLevel.INFO,
-                message="Initializing browser agent",
+                message="Creating agent with persistent browser session",
                 timestamp=datetime.now(),
             ))
             
-            agent = await create_browser_use_agent(
+            agent = Agent(
                 task=interpolated_content,
-                headless=self.headless,
-                temperature=self.temperature,
+                llm=llm,
+                browser=browser,
             )
             
             # Execute the step with timeout

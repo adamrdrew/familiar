@@ -5,15 +5,23 @@ This example demonstrates a complete e-commerce user journey with Familiar.
 ## Overview
 
 This test suite verifies a full shopping experience:
-1. Visit homepage
-2. Search for a product
-3. View product details
-4. Add product to cart
-5. View shopping cart
-6. Begin checkout
-7. Verify checkout form
+1. Visit homepage (`00-homepage.md`)
+2. Search for a product (`01-search-product.md`)
+3. View product details (`02-select-product.md`)
+4. Add product to cart (`03-add-to-cart.md`)
+5. View shopping cart (`04-view-cart.md`)
+6. Begin checkout (`05-begin-checkout.md`)
+7. Verify checkout form (`06-verify-checkout-form.md`)
 
 **Note**: This test intentionally stops before final purchase to avoid creating real orders.
+
+### Step Naming Convention
+
+Steps use numeric prefixes (00-99) to define execution order:
+- `00-homepage.md` → `01-search-product.md` → ... → `06-verify-checkout-form.md`
+- Files without numeric prefixes (like this `README.md`) are automatically skipped
+- All 7 steps share the SAME browser session (cumulative execution)
+- Cart state from step 03 persists through steps 04-06 for verification
 
 ## Prerequisites
 

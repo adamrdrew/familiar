@@ -213,6 +213,8 @@ Check that the user's name or email appears in the header
 Confirm that the main navigation menu is visible
 ```
 
+> **Note:** Steps are executed sequentially (00 → 01 → 02) using the SAME browser session. This means the login state from step 01 persists into step 02, enabling cumulative testing workflows.
+
 ### 3. Set Test Environment Variables
 
 **Using .env file (recommended)**:
@@ -289,8 +291,22 @@ familiar run familiar/ --all
 #### Test Suites
 A **test suite** is a directory containing:
 - `suite.yaml`: Configuration file
-- `*.md`: Test step files (executed in alphanumeric order)
+- `NN-name.md`: Test step files with numeric prefixes (00-99) defining execution order
+- Optional non-numbered `.md` files (e.g., `README.md`, `notes.md`) - automatically skipped
 - Optional `shared/` directory for reusable steps
+
+**Step Naming Requirements:**
+- Steps MUST use format: `00-description.md`, `01-next-step.md`, etc.
+- Prefixes must be exactly 2 digits (00-99)
+- Steps execute in numeric order (00 → 01 → 02...)
+- Files without numeric prefixes are skipped
+- No duplicate prefixes allowed
+
+**Cumulative Execution:**
+- All steps in a scenario share the SAME browser session
+- Browser state (cookies, local storage, navigation) persists across steps
+- This enables cumulative testing: login → navigate → perform action
+- Each scenario has its own isolated browser session
 
 #### Test Steps
 Test steps are Markdown files with natural language instructions:

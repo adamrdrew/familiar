@@ -2,11 +2,14 @@
 from datetime import datetime
 from typing import Optional, Dict
 
+from browser_use import Browser
+
 from familiar.models.suite import TestSuite
 from familiar.models.result import SuiteResult, TestResult
 from familiar.core.executor import StepExecutor
 from familiar.core.retry import create_retry_policy
 from familiar.utils.env import get_env_vars
+from familiar.utils.browser import create_llm
 
 
 class SuiteRunner:
@@ -37,6 +40,9 @@ class SuiteRunner:
     async def run_suite(self, suite: TestSuite) -> SuiteResult:
         """Execute all steps in a test suite with retry support.
         
+        Creates a single browser session for the entire suite, enabling
+        cumulative testing where browser state persists across steps.
+        
         Args:
             suite: The test suite to execute.
         
@@ -57,25 +63,35 @@ class SuiteRunner:
             n_runs=retry_config.n_runs or 1,
         )
         
-        # Create executor with suite configuration
-        executor = StepExecutor(
-            headless=self.headless,
-            temperature=suite.config.temperature,
-            variables=self.variables,
-            retry_policy=retry_policy,
-        )
+        # Create browser and LLM ONCE for entire scenario
+        # This enables cumulative testing (login → navigate → action)
+        browser = Browser(headless=self.headless)
+        llm = create_llm(temperature=suite.config.temperature)
         
-        # Execute each step in sequence
-        for step in suite.steps:
-            result = await executor.execute_step(
-                step=step,
-                timeout=suite.config.step_timeout,
+        try:
+            # Create executor with suite configuration
+            executor = StepExecutor(
+                variables=self.variables,
+                retry_policy=retry_policy,
             )
-            test_results.append(result)
             
-            # Stop on failure if fuzziness is 0.0 (no tolerance for failures)
-            if result.status.value == "failed" and suite.config.fuzziness == 0.0:
-                break
+            # Execute each step in sequence using the SAME browser
+            for step in suite.steps:
+                result = await executor.execute_step(
+                    step=step,
+                    browser=browser,
+                    llm=llm,
+                    timeout=suite.config.step_timeout,
+                )
+                test_results.append(result)
+                
+                # Stop on failure if fuzziness is 0.0 (no tolerance for failures)
+                if result.status.value == "failed" and suite.config.fuzziness == 0.0:
+                    break
+        
+        finally:
+            # Always close browser, even if steps fail
+            await browser.close()
         
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()

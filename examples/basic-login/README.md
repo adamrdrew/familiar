@@ -5,10 +5,18 @@ This example demonstrates a simple login test flow with Familiar.
 ## Overview
 
 This test suite verifies that a user can successfully log into an application by:
-1. Navigating to the login page
-2. Entering credentials
-3. Submitting the form
-4. Verifying successful authentication
+1. Navigating to the login page (`00-navigate.md`)
+2. Entering credentials (`01-enter-credentials.md`)
+3. Submitting the form (`02-submit-login.md`)
+4. Verifying successful authentication (`03-verify-logged-in.md`)
+
+### Step Naming Convention
+
+Steps use numeric prefixes (00-99) to define execution order:
+- `00-navigate.md` → `01-enter-credentials.md` → `02-submit-login.md` → `03-verify-logged-in.md`
+- Files without numeric prefixes (like this `README.md`) are automatically skipped
+- All steps in this scenario share the SAME browser session (cumulative execution)
+- Login state from step 02 persists into step 03 for verification
 
 ## Prerequisites
 
@@ -78,11 +86,12 @@ retry_policy:
 
 ### Add More Steps
 
-Create additional markdown files:
+Create additional markdown files with numeric prefixes:
 - `04-change-password.md`
 - `05-logout.md`
+- `06-verify-logout.md`
 
-Files are executed in alphanumeric order.
+Steps are executed in numeric order (00 → 01 → 02 ...) using the same browser session.
 
 ### Make It More Tolerant
 
