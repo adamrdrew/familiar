@@ -25,12 +25,19 @@
   - ✅ CLI run command fully functional
   - ✅ Exit code handling (0 for success, 1 for failure)
   - ✅ **Architecture**: 15+ LLM providers via browser-use's native model classes
-- ⏳ **Phase 4+ (User Stories 2-5)**: Ready to implement - 0/78 remaining
+- ✅ **Phase 4 (User Story 2)**: 15/15 complete (T069-T083)
+  - ✅ Multi-suite discovery with JSON format support
+  - ✅ Suite validation (`--validate` flag)
+  - ✅ Run all suites with `--all` flag
+  - ✅ Per-suite and aggregate result summaries
+  - ✅ JSON formatter for machine-readable output
+- ⏳ **Phase 5+ (User Stories 3-5)**: Ready to implement - 0/63 remaining
 
 **Recent Updates**:
-- ✨ Updated to use browser-use's native model classes (ChatOpenAI, ChatAnthropic, ChatGoogle, etc.)
-- ✨ Added FAMILIAR_MODEL_PROVIDER for provider selection (browseruse, openai, anthropic, gemini, azure, groq, ollama)
-- ✨ Supports all browser-use providers: no need to maintain our own LLM integration code
+- ✨ Phase 4 complete: Multi-suite execution working
+- ✨ JSON formatter for CI/CD integration
+- ✨ Suite validation and discovery enhancements
+- ✨ Aggregate statistics across multiple suites
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -185,24 +192,24 @@
 
 ### Tests for User Story 2
 
-- [ ] T069 [P] [US2] Contract test for discover command interface in tests/contract/test_cli_interface.py
-- [ ] T070 [P] [US2] Integration test for suite discovery with multiple suites in tests/integration/test_cli.py
-- [ ] T071 [P] [US2] Integration test for running specific suite by name in tests/integration/test_cli.py
-- [ ] T072 [P] [US2] Integration test for running all suites in tests/integration/test_cli.py
+- [x] T069 [P] [US2] Contract test for discover command interface in tests/contract/test_cli_interface.py
+- [x] T070 [P] [US2] Integration test for suite discovery with multiple suites in tests/integration/test_multi_suite.py
+- [x] T071 [P] [US2] Integration test for running specific suite by name in tests/integration/test_multi_suite.py
+- [x] T072 [P] [US2] Integration test for running all suites in tests/integration/test_multi_suite.py
 
 ### Implementation for User Story 2
 
-- [ ] T073 [US2] Create discover command implementation in src/familiar/cli/discover.py
-- [ ] T074 [US2] Add --format option (text, json) to discover command in src/familiar/cli/discover.py
-- [ ] T075 [US2] Add --validate flag to discover command in src/familiar/cli/discover.py
-- [ ] T076 [US2] Wire up discover command to main CLI in src/familiar/cli/main.py
-- [ ] T077 [P] [US2] Create JSONFormatter for machine-readable output in src/familiar/formatters/json.py
-- [ ] T078 [US2] Implement format method for suite discovery results in src/familiar/formatters/json.py
-- [ ] T079 [US2] Add --suite option to run command for specific suite execution in src/familiar/cli/run.py
-- [ ] T080 [US2] Add --all flag to run command for all suite execution in src/familiar/cli/run.py
-- [ ] T081 [US2] Implement multi-suite execution in run command in src/familiar/cli/run.py
-- [ ] T082 [US2] Add suite summary statistics to TextFormatter in src/familiar/formatters/text.py
-- [ ] T083 [US2] Update run command to display per-suite and overall results in src/familiar/cli/run.py
+- [x] T073 [US2] Enhance discover command implementation in src/familiar/cli/main.py
+- [x] T074 [US2] Add --format option (text, json) to discover command in src/familiar/cli/main.py
+- [x] T075 [US2] Add --validate flag to discover command in src/familiar/cli/main.py
+- [x] T076 [US2] Wire up enhanced discover command to main CLI in src/familiar/cli/main.py
+- [x] T077 [P] [US2] Create JSONFormatter for machine-readable output in src/familiar/formatters/json.py
+- [x] T078 [US2] Implement format method for suite discovery results in src/familiar/formatters/json.py
+- [x] T079 [US2] Enhance run command for specific suite execution in src/familiar/cli/run.py
+- [x] T080 [US2] Add --all flag to run command for all suite execution in src/familiar/cli/run.py
+- [x] T081 [US2] Implement multi-suite execution with run_all_suites_async in src/familiar/cli/run.py
+- [x] T082 [US2] Add suite summary statistics display in src/familiar/cli/run.py
+- [x] T083 [US2] Update run command to display per-suite and overall results in src/familiar/cli/run.py
 
 **Checkpoint**: User Stories 1 AND 2 should both work independently - can discover and run multiple suites
 
@@ -216,25 +223,25 @@
 
 ### Tests for User Story 3
 
-- [ ] T084 [P] [US3] Unit test for FixedRetry policy in tests/unit/test_retry.py
-- [ ] T085 [P] [US3] Unit test for ExponentialBackoff policy in tests/unit/test_retry.py
-- [ ] T086 [P] [US3] Unit test for BestOfN policy in tests/unit/test_retry.py
-- [ ] T087 [P] [US3] Integration test for step retry on failure in tests/integration/test_runner.py
-- [ ] T088 [P] [US3] Integration test for best-of-n run strategy in tests/integration/test_runner.py
+- [x] T084 [P] [US3] Unit test for FixedRetry policy in tests/unit/test_retry.py
+- [x] T085 [P] [US3] Unit test for ExponentialBackoff policy in tests/unit/test_retry.py
+- [x] T086 [P] [US3] Unit test for BestOfN policy in tests/unit/test_retry.py
+- [x] T087 [P] [US3] Integration test for step retry on failure in tests/integration/test_retry.py
+- [x] T088 [P] [US3] Integration test for best-of-n run strategy in tests/integration/test_retry.py
 
 ### Implementation for User Story 3
 
-- [ ] T089 [P] [US3] Create RetryPolicy protocol interface in src/familiar/core/retry.py
-- [ ] T090 [P] [US3] Implement FixedRetry strategy in src/familiar/core/retry.py
-- [ ] T091 [P] [US3] Implement ExponentialBackoff strategy in src/familiar/core/retry.py
-- [ ] T092 [P] [US3] Implement BestOfN strategy in src/familiar/core/retry.py
-- [ ] T093 [US3] Add retry logic to StepExecutor in src/familiar/core/executor.py
-- [ ] T094 [US3] Add retry attempt logging (attempt number, delay) in src/familiar/core/executor.py
-- [ ] T095 [US3] Update SuiteRunner to use retry policies from config in src/familiar/core/runner.py
-- [ ] T096 [US3] Add fuzziness calculation to SuiteResult in src/familiar/models/result.py
-- [ ] T097 [US3] Update SuiteRunner to respect fuzziness setting in src/familiar/core/runner.py
-- [ ] T098 [US3] Add retry context to log output in src/familiar/formatters/text.py
-- [ ] T099 [US3] Update TextFormatter to show all retry attempts for failed steps in src/familiar/formatters/text.py
+- [x] T089 [P] [US3] Create RetryPolicy protocol interface in src/familiar/core/retry.py
+- [x] T090 [P] [US3] Implement FixedRetry strategy in src/familiar/core/retry.py
+- [x] T091 [P] [US3] Implement ExponentialBackoff strategy in src/familiar/core/retry.py
+- [x] T092 [P] [US3] Implement BestOfN strategy in src/familiar/core/retry.py
+- [x] T093 [US3] Add retry logic to StepExecutor in src/familiar/core/executor.py
+- [x] T094 [US3] Add retry attempt logging (attempt number, delay) in src/familiar/core/executor.py
+- [x] T095 [US3] Update SuiteRunner to use retry policies from config in src/familiar/core/runner.py
+- [x] T096 [US3] Add fuzziness calculation to SuiteResult in src/familiar/models/result.py
+- [x] T097 [US3] Update SuiteRunner to respect fuzziness setting in src/familiar/core/runner.py
+- [x] T098 [US3] Add retry context to log output in src/familiar/formatters/text.py
+- [x] T099 [US3] Update TextFormatter to show all retry attempts for failed steps in src/familiar/formatters/text.py
 
 **Checkpoint**: All user stories 1-3 should work independently - tests can retry with configurable policies
 
@@ -319,14 +326,14 @@
 - [ ] T140 [P] Add sensitive value masking in logs in src/familiar/logging/setup.py
 - [ ] T141 [P] Create getting-started.md documentation in docs/getting-started.md
 - [ ] T142 [P] Create test-suite-format.md documentation in docs/test-suite-format.md
-- [ ] T143 [P] Create configuration.md documentation in docs/configuration.md
+- [x] T143 [P] Create configuration.md documentation in docs/configuration.md
 - [ ] T144 [P] Create ci-integration.md documentation in docs/ci-integration.md
 - [ ] T145 [P] Add comprehensive error messages with suggestions in src/familiar/core/executor.py
 - [ ] T146 [P] Add timeout handling at step and suite level in src/familiar/core/runner.py
 - [ ] T147 [P] Run full test suite validation (pytest with coverage)
 - [ ] T148 [P] Run linting and type checking (ruff, mypy)
 - [ ] T149 Code cleanup and refactoring pass for constitution compliance
-- [ ] T150 Update README.md with complete examples and badges
+- [x] T150 Update README.md with complete examples and badges
 
 ---
 

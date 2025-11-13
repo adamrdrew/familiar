@@ -1,0 +1,31 @@
+name: "Basic Login Flow"
+description: "Simple test demonstrating user authentication"
+
+# Conservative timeouts for quick feedback
+timeout: 120
+step_timeout: 30
+
+# Fixed retry with minimal attempts
+retry_policy:
+  type: "fixed"
+  max_retries: 2
+  delay: 1.0
+
+# Strict - all steps must pass
+fuzziness: 0.0
+
+# Moderate temperature for balanced behavior
+temperature: 0.6
+
+# Run headless by default
+headless: true
+
+# Capture screenshots on failure for debugging
+screenshot_on_failure: true
+
+# Optional metadata
+metadata:
+  priority: "high"
+  category: "authentication"
+  owner: "qa-team@example.com"
+

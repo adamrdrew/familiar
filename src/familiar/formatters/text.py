@@ -99,7 +99,8 @@ class TextFormatter:
         for test in result.test_results:
             status_icon = "✓" if test.status == ResultStatus.PASSED else "✗"
             duration = f"{test.duration:.2f}s"
-            lines.append(f"  {status_icon} {test.step_name} ({duration})")
+            retry_info = f" (retries: {test.retry_count})" if test.retry_count > 0 else ""
+            lines.append(f"  {status_icon} {test.step_name} ({duration}){retry_info}")
             
             if test.error_message:
                 lines.append(f"    Error: {test.error_message}")
@@ -113,6 +114,7 @@ class TextFormatter:
         table.add_column("Status", width=8)
         table.add_column("Step", style="cyan")
         table.add_column("Duration", justify="right", width=10)
+        table.add_column("Retries", justify="right", width=8)
         
         for test in result.test_results:
             status_text = Text()
@@ -125,10 +127,18 @@ class TextFormatter:
             
             duration = f"{test.duration:.2f}s"
             
+            # Show retry count if there were retries
+            retry_text = Text()
+            if test.retry_count > 0:
+                retry_text.append(str(test.retry_count), style="yellow")
+            else:
+                retry_text.append("-", style="dim")
+            
             table.add_row(
                 status_text,
                 test.step_name,
                 duration,
+                retry_text,
             )
         
         self.console.print(table)

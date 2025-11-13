@@ -1,13 +1,14 @@
 """Step execution with browser-use integration."""
 import asyncio
 from datetime import datetime
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 import traceback
 
 from familiar.models.step import TestStep
 from familiar.models.result import TestResult, ResultStatus, LogEntry, LogLevel, BrowserAction, ActionType
 from familiar.utils.browser import create_browser_use_agent
 from familiar.utils.interpolation import interpolate_variables
+from familiar.core.retry import RetryPolicy, FixedRetry
 
 
 class StepExecutor:
@@ -25,6 +26,7 @@ class StepExecutor:
         headless: bool = True,
         temperature: float = 0.5,
         variables: Optional[Dict[str, str]] = None,
+        retry_policy: Optional[RetryPolicy] = None,
     ):
         """Initialize the step executor.
         
@@ -32,17 +34,22 @@ class StepExecutor:
             headless: Whether to run browser in headless mode.
             temperature: LLM temperature for agent decision making.
             variables: Environment variables for step interpolation.
+            retry_policy: Retry policy for failed steps.
         """
         self.headless = headless
         self.temperature = temperature
         self.variables = variables or {}
+        self.retry_policy = retry_policy or FixedRetry(max_retries=0, delay=0.0)
     
     async def execute_step(
         self,
         step: TestStep,
         timeout: int = 60,
     ) -> TestResult:
-        """Execute a single test step.
+        """Execute a single test step with retry support.
+        
+        Attempts to execute the step, retrying on failure according to
+        the configured retry policy. Logs all attempts.
         
         Args:
             step: The test step to execute.
@@ -50,6 +57,56 @@ class StepExecutor:
         
         Returns:
             TestResult with execution outcome, logs, and timing.
+            For retries, returns the first successful result or the last failure.
+        """
+        attempt = 0
+        all_logs: List[LogEntry] = []
+        
+        while True:
+            if attempt > 0:
+                all_logs.append(LogEntry(
+                    level=LogLevel.INFO,
+                    message=f"Retry attempt {attempt + 1} for step: {step.name}",
+                    timestamp=datetime.now(),
+                ))
+            
+            result = await self._execute_step_once(step, timeout, attempt + 1)
+            
+            # Merge logs from this attempt
+            all_logs.extend(result.logs)
+            
+            # If successful or no more retries, return
+            if result.status == ResultStatus.PASSED or not self.retry_policy.should_retry(attempt):
+                result.logs = all_logs
+                return result
+            
+            # Get delay for next retry
+            delay = self.retry_policy.get_delay(attempt)
+            if delay > 0:
+                all_logs.append(LogEntry(
+                    level=LogLevel.INFO,
+                    message=f"Waiting {delay}s before retry",
+                    timestamp=datetime.now(),
+                ))
+                await asyncio.sleep(delay)
+            
+            attempt += 1
+    
+    async def _execute_step_once(
+        self,
+        step: TestStep,
+        timeout: int,
+        attempt: int,
+    ) -> TestResult:
+        """Execute a single attempt of a test step.
+        
+        Args:
+            step: The test step to execute.
+            timeout: Maximum execution time in seconds.
+            attempt: Current attempt number (1-indexed).
+        
+        Returns:
+            TestResult with execution outcome for this attempt.
         """
         start_time = datetime.now()
         logs: list[LogEntry] = []
@@ -124,6 +181,7 @@ class StepExecutor:
                     logs=logs,
                     browser_actions=browser_actions,
                     error_message=None,
+                    attempt=attempt,
                 )
                 
             except asyncio.TimeoutError:
@@ -143,6 +201,7 @@ class StepExecutor:
                     logs=logs,
                     browser_actions=browser_actions,
                     error_message=f"Timeout after {timeout} seconds",
+                    attempt=attempt,
                 )
         
         except Exception as e:
@@ -172,5 +231,6 @@ class StepExecutor:
                 logs=logs,
                 browser_actions=browser_actions,
                 error_message=error_msg,
+                attempt=attempt,
             )
 

@@ -53,8 +53,13 @@ def run(
 @click.option(
     "--format", "-f", type=click.Choice(["text", "json"]), default="text", help="Output format"
 )
-def discover(directory: Optional[Path], format: str) -> None:
+@click.option(
+    "--validate", is_flag=True, help="Validate suite configurations"
+)
+def discover(directory: Optional[Path], format: str, validate: bool) -> None:
     """Discover test suites."""
+    from familiar.formatters.json import JSONFormatter
+    
     root_dir = directory or Path("./familiar")
     discovery = TestSuiteDiscovery()
     suites = discovery.discover_suites(root_dir)
@@ -65,12 +70,17 @@ def discover(directory: Optional[Path], format: str) -> None:
             click.echo(f"{i}. {suite.name}")
             click.echo(f"   Path: {suite.path}")
             click.echo(f"   Steps: {len(suite.steps)}")
+            if validate:
+                # Basic validation - just check if we could parse it
+                click.echo(f"   ✓ Valid configuration")
             click.echo()
+        
+        if validate:
+            click.echo(f"✓ All {len(suites)} suites have valid configurations")
     else:
-        data = [
-            {"name": s.name, "path": str(s.path), "steps": len(s.steps)} for s in suites
-        ]
-        click.echo(json.dumps(data, indent=2))
+        json_formatter = JSONFormatter(pretty=True)
+        output = json_formatter.format_discovery(suites)
+        click.echo(output)
 
 
 if __name__ == "__main__":

@@ -44,3 +44,15 @@ def test_run_command_interface():
     assert "--all" in result.stdout
     assert "Run test suites" in result.stdout
 
+
+def test_discover_command_interface():
+    """Test that discover command has expected options."""
+    result = subprocess.run(
+        [sys.executable, "-m", "familiar", "discover", "--help"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--format" in result.stdout
+    assert "Discover test suites" in result.stdout
+

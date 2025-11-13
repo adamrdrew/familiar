@@ -1,0 +1,34 @@
+name: "E-Commerce Purchase Flow"
+description: "Complete user journey from product browse to checkout"
+
+# Longer timeout for multi-step flow
+timeout: 480
+step_timeout: 60
+
+# Exponential backoff for API calls and page loads
+retry_policy:
+  type: "exponential"
+  max_retries: 3
+  base_delay: 2.0
+  max_delay: 30.0
+
+# Allow some non-critical steps to fail
+fuzziness: 0.15
+
+# Balanced temperature
+temperature: 0.7
+
+headless: true
+screenshot_on_failure: true
+
+# E-commerce specific variables
+env:
+  PRODUCT_SEARCH: "laptop"
+  EXPECTED_MIN_PRICE: "500"
+  SHIPPING_ADDRESS: "123 Test St, Test City, TC 12345"
+  
+metadata:
+  priority: "critical"
+  category: "user-journey"
+  estimated_duration: "6-8 minutes"
+

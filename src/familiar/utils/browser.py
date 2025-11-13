@@ -1,127 +1,99 @@
 """Browser-use integration utilities."""
 import os
 from typing import Optional, Any
-from browser_use import (
-    Agent,
-    Browser,
-    BrowserConfig,
-    ChatOpenAI,
-    ChatAnthropic,
-    ChatGoogle,
-    ChatBrowserUse,
-    ChatAzureOpenAI,
-    ChatGroq,
-    ChatOllama,
-)
+from browser_use import Agent, Browser
 
 
-def create_browser_config(headless: bool = True) -> BrowserConfig:
-    """Create browser configuration from environment and parameters.
+def create_llm(temperature: float = 0.5) -> Any:
+    """Create LLM client based on FAMILIAR_MODEL_PROVIDER environment variable.
+    
+    Supports multiple LLM providers through langchain:
+    - openai: OpenAI models (requires langchain-openai)
+    - anthropic: Anthropic Claude models (requires langchain-anthropic)
+    - google/gemini: Google Gemini models (requires langchain-google-genai)
+    - ollama: Local Ollama models (requires langchain-ollama)
+    
+    The model is specified via FAMILIAR_MODEL env var.
+    Provider-specific auth is handled via their standard env vars:
+    - OpenAI: OPENAI_API_KEY
+    - Anthropic: ANTHROPIC_API_KEY
+    - Google: GOOGLE_API_KEY
+    - Ollama: OLLAMA_HOST (optional)
     
     Args:
-        headless: Whether to run browser in headless mode.
+        temperature: LLM temperature for response variability (0.0-1.0).
     
     Returns:
-        BrowserConfig instance configured for the test environment.
-    """
-    return BrowserConfig(
-        headless=headless,
-        disable_security=True,  # For testing, allow insecure contexts
-    )
-
-
-def create_llm(
-    temperature: float = 0.5,
-    model: Optional[str] = None,
-    provider: Optional[str] = None,
-) -> Any:
-    """Create LLM client for browser-use agent using browser-use's native model classes.
-    
-    Supports all providers that browser-use supports natively.
-    Uses browser-use's environment variable conventions for each provider.
-    
-    Environment variables:
-    - FAMILIAR_MODEL_PROVIDER: Provider to use (browseruse, openai, anthropic, gemini, azure, groq, ollama, etc.)
-    - FAMILIAR_MODEL: Model name (provider-specific)
-    - Provider-specific API keys (OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.)
-    
-    Args:
-        temperature: LLM temperature (0.0-1.0).
-        model: Model name override. If None, uses FAMILIAR_MODEL env var.
-        provider: Provider override. If None, uses FAMILIAR_MODEL_PROVIDER env var.
-    
-    Returns:
-        Configured LLM instance from browser-use (ChatOpenAI, ChatAnthropic, etc.).
+        Configured LLM client instance.
     
     Raises:
-        ValueError: If provider is unknown or required API keys are missing.
-        
-    References:
-        - Supported providers: https://github.com/browser-use/browser-use/blob/main/docs/supported-models.mdx
+        ValueError: If model provider is not supported or required env vars are missing.
+        ImportError: If required langchain package is not installed.
+    
+    Example:
+        >>> os.environ["FAMILIAR_MODEL_PROVIDER"] = "anthropic"
+        >>> os.environ["FAMILIAR_MODEL"] = "claude-3-5-sonnet-20241022"
+        >>> os.environ["ANTHROPIC_API_KEY"] = "sk-ant-..."
+        >>> llm = create_llm(temperature=0.7)
     """
-    provider = provider or os.environ.get("FAMILIAR_MODEL_PROVIDER", "openai")
-    model = model or os.environ.get("FAMILIAR_MODEL")
+    provider = os.getenv("FAMILIAR_MODEL_PROVIDER", "anthropic").lower()
+    model = os.getenv("FAMILIAR_MODEL")
     
-    provider = provider.lower()
-    
-    # Browser Use Cloud - optimized in-house model (3-5x faster)
-    if provider == "browseruse":
-        return ChatBrowserUse()  # Uses BROWSER_USE_API_KEY env var
-    
-    # OpenAI - GPT models (GPT-4, GPT-3.5, O1, O3)
-    elif provider == "openai":
-        model = model or "gpt-4"
+    if provider == "openai":
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError:
+            raise ImportError("langchain-openai package required for OpenAI provider. Install with: pip install langchain-openai")
+        
+        if not os.getenv("OPENAI_API_KEY"):
+            raise ValueError("OPENAI_API_KEY environment variable required for OpenAI provider")
         return ChatOpenAI(
-            model=model,
+            model=model or "gpt-4o",
             temperature=temperature,
-        )  # Uses OPENAI_API_KEY env var
+        )
     
-    # Anthropic - Claude models (Sonnet, Opus, Haiku)
     elif provider == "anthropic":
-        model = model or "claude-sonnet-4-0"
+        try:
+            from langchain_anthropic import ChatAnthropic
+        except ImportError:
+            raise ImportError("langchain-anthropic package required for Anthropic provider. Install with: pip install langchain-anthropic")
+        
+        if not os.getenv("ANTHROPIC_API_KEY"):
+            raise ValueError("ANTHROPIC_API_KEY environment variable required for Anthropic provider")
         return ChatAnthropic(
-            model=model,
+            model=model or "claude-3-5-sonnet-20241022",
             temperature=temperature,
-        )  # Uses ANTHROPIC_API_KEY env var
+        )
     
-    # Google Gemini
-    elif provider == "gemini" or provider == "google":
-        model = model or "gemini-flash-latest"
-        return ChatGoogle(
-            model=model,
+    elif provider in ("google", "gemini"):
+        try:
+            from langchain_google_genai import ChatGoogleGenerativeAI
+        except ImportError:
+            raise ImportError("langchain-google-genai package required for Google provider. Install with: pip install langchain-google-genai")
+        
+        if not os.getenv("GOOGLE_API_KEY"):
+            raise ValueError("GOOGLE_API_KEY environment variable required for Google provider")
+        return ChatGoogleGenerativeAI(
+            model=model or "gemini-2.0-flash-exp",
             temperature=temperature,
-        )  # Uses GOOGLE_API_KEY env var
+        )
     
-    # Azure OpenAI
-    elif provider == "azure":
-        model = model or "gpt-4"
-        return ChatAzureOpenAI(
-            model=model,
-            temperature=temperature,
-        )  # Uses AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT env vars
-    
-    # Groq - fast inference for open models
-    elif provider == "groq":
-        model = model or "meta-llama/llama-4-maverick-17b-128e-instruct"
-        return ChatGroq(
-            model=model,
-            temperature=temperature,
-        )  # Uses GROQ_API_KEY env var
-    
-    # Ollama - local models
     elif provider == "ollama":
-        model = model or "llama3.1:8b"
+        try:
+            from langchain_ollama import ChatOllama
+        except ImportError:
+            raise ImportError("langchain-ollama package required for Ollama provider. Install with: pip install langchain-ollama")
+        
+        # Ollama doesn't require API key, just OLLAMA_HOST (optional)
         return ChatOllama(
-            model=model,
+            model=model or "llama3.2",
             temperature=temperature,
-        )  # Uses localhost, no API key needed
+        )
     
-    # Unknown provider
     else:
         raise ValueError(
-            f"Unknown LLM provider: {provider}. Supported providers: "
-            f"browseruse, openai, anthropic, gemini, azure, groq, ollama. "
-            f"See https://github.com/browser-use/browser-use/blob/main/docs/supported-models.mdx"
+            f"Unsupported model provider: {provider}. "
+            f"Supported providers: openai, anthropic, google, gemini, ollama"
         )
 
 
@@ -129,34 +101,33 @@ async def create_browser_use_agent(
     task: str,
     headless: bool = True,
     temperature: float = 0.5,
-    model: Optional[str] = None,
-    provider: Optional[str] = None,
 ) -> Agent:
-    """Create a browser-use Agent for executing a test step.
+    """Create and configure a browser-use agent for test execution.
     
-    This is the main factory function for creating agents to execute test steps.
-    browser-use handles all browser control automatically via Playwright.
-    LLM provider is selected via FAMILIAR_MODEL_PROVIDER environment variable.
+    This is the primary entry point for creating browser-use agents.
+    It handles LLM provider selection, browser configuration, and agent setup.
     
     Args:
-        task: The natural language task description for the agent.
+        task: The natural language task/instruction for the agent to execute.
         headless: Whether to run browser in headless mode.
         temperature: LLM temperature for agent decision making.
-        model: Optional model name override (uses FAMILIAR_MODEL if not provided).
-        provider: Optional provider override (uses FAMILIAR_MODEL_PROVIDER if not provided).
     
     Returns:
         Configured Agent instance ready to execute the task.
     
-    Raises:
-        ValueError: If required environment variables are not set or provider is unknown.
+    Example:
+        >>> agent = await create_browser_use_agent(
+        ...     task="Navigate to google.com and search for 'python'",
+        ...     headless=True,
+        ...     temperature=0.7,
+        ... )
+        >>> result = await agent.run()
     """
-    # Create LLM client using browser-use's native model classes
-    llm = create_llm(temperature=temperature, model=model, provider=provider)
+    # Create LLM based on environment configuration
+    llm = create_llm(temperature=temperature)
     
-    # Create browser
-    browser_config = create_browser_config(headless=headless)
-    browser = Browser(config=browser_config)
+    # Create browser session with configuration
+    browser = Browser(headless=headless)
     
     # Create and return agent
     agent = Agent(
@@ -166,4 +137,3 @@ async def create_browser_use_agent(
     )
     
     return agent
-
