@@ -16,6 +16,7 @@ async def run_suite_async(
     suite_path: Path,
     headless: bool,
     verbose: bool,
+    fast_mode: bool = False,
 ) -> int:
     """Run a single test suite asynchronously.
     
@@ -23,6 +24,7 @@ async def run_suite_async(
         suite_path: Path to the test suite directory.
         headless: Whether to run browser in headless mode.
         verbose: Whether to show detailed logs.
+        fast_mode: Whether to enable speed optimizations.
     
     Returns:
         Exit code (0 for success, 1 for failure).
@@ -36,10 +38,11 @@ async def run_suite_async(
         parser = SuiteParser()
         suite = parser.parse_suite(suite_path)
         
-        click.echo(f"\n🚀 Running test suite: [bold]{suite.name}[/bold]\n", nl=True)
+        mode_indicator = " ⚡ FAST MODE" if fast_mode else ""
+        click.echo(f"\n🚀 Running test suite: [bold]{suite.name}[/bold]{mode_indicator}\n", nl=True)
         
         # Run the suite
-        runner = SuiteRunner(headless=headless)
+        runner = SuiteRunner(headless=headless, fast_mode=fast_mode)
         result = await runner.run_suite(suite)
         
         # Format and display results
@@ -65,6 +68,7 @@ async def run_all_suites_async(
     headless: bool,
     verbose: bool,
     format: str,
+    fast_mode: bool = False,
 ) -> int:
     """Run all test suites in a directory asynchronously.
     
@@ -73,6 +77,7 @@ async def run_all_suites_async(
         headless: Whether to run browser in headless mode.
         verbose: Whether to show detailed logs.
         format: Output format (text, json, junit).
+        fast_mode: Whether to enable speed optimizations.
     
     Returns:
         Exit code (0 if all pass, 1 if any fail).
@@ -92,10 +97,11 @@ async def run_all_suites_async(
         click.echo(f"❌ No test suites found in: {directory}", err=True)
         return 2
     
-    click.echo(f"\n🚀 Running {len(suites)} test suites from: {directory}\n")
+    mode_indicator = " ⚡ FAST MODE" if fast_mode else ""
+    click.echo(f"\n🚀 Running {len(suites)} test suites from: {directory}{mode_indicator}\n")
     
     # Run each suite
-    runner = SuiteRunner(headless=headless)
+    runner = SuiteRunner(headless=headless, fast_mode=fast_mode)
     results = []
     formatter = TextFormatter(verbose=verbose)
     
@@ -158,6 +164,7 @@ def run_suite_command(
     format: str,
     headless: bool,
     verbose: bool,
+    fast_mode: bool = False,
 ) -> None:
     """Run test suites command handler.
     
@@ -167,6 +174,7 @@ def run_suite_command(
         format: Output format (text, json, junit).
         headless: Whether to run browser in headless mode.
         verbose: Whether to show detailed logs.
+        fast_mode: Whether to enable speed optimizations.
     """
     import json
     
@@ -195,6 +203,7 @@ def run_suite_command(
             headless=headless,
             verbose=verbose,
             format=format,
+            fast_mode=fast_mode,
         ))
         sys.exit(exit_code)
     
@@ -215,6 +224,7 @@ def run_suite_command(
         suite_path=suite_path,
         headless=headless,
         verbose=verbose,
+        fast_mode=fast_mode,
     ))
     
     sys.exit(exit_code)

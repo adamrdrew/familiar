@@ -23,6 +23,12 @@ headless: true
 # Capture screenshots on failure for debugging
 screenshot_on_failure: true
 
+# Performance tuning (optional)
+# Uncomment to enable fast mode for development
+# browser_profile:
+#   minimum_wait_page_load_time: 0.2
+#   wait_between_actions: 0.2
+
 # Optional metadata
 metadata:
   priority: "high"
