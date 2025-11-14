@@ -3,7 +3,6 @@
 import asyncio
 import sys
 from pathlib import Path
-from typing import Optional
 
 import click
 
@@ -19,7 +18,7 @@ async def run_suite_async(
     verbose: bool,
     fast_mode: bool = False,
     scenario_agent_override: bool = False,
-    global_agent_instructions: Optional[str] = None,
+    global_agent_instructions: str | None = None,
 ) -> int:
     """Run a single test suite asynchronously.
 
@@ -79,7 +78,7 @@ async def run_all_suites_async(
     format: str,
     fast_mode: bool = False,
     scenario_agent_override: bool = False,
-    global_agent_instructions: Optional[str] = None,
+    global_agent_instructions: str | None = None,
 ) -> int:
     """Run all test suites in a directory asynchronously.
 
@@ -177,7 +176,7 @@ async def run_all_suites_async(
 
 
 def run_suite_command(
-    suite_path_or_name: Optional[str],
+    suite_path_or_name: str | None,
     run_all: bool,
     format: str,
     headless: bool,
@@ -197,12 +196,12 @@ def run_suite_command(
         scenario_agent_override: Whether to use only scenario-level agent instructions.
     """
     if format == "junit":
-        click.echo(f"⚠️  Format 'junit' not yet implemented, using text", err=True)
+        click.echo("⚠️  Format 'junit' not yet implemented, using text", err=True)
         format = "text"
 
     # Discover global agent instructions
     from familiar.core.parser import read_agent_instructions
-    
+
     root_dir = Path("./familiar")  # Default familiar root
     if run_all and suite_path_or_name:
         root_dir = Path(suite_path_or_name)
@@ -211,7 +210,7 @@ def run_suite_command(
         suite_path = Path(suite_path_or_name)
         if suite_path.is_dir() and (suite_path / "suite.yaml").exists():
             root_dir = suite_path.parent
-    
+
     global_agent_instructions = read_agent_instructions(root_dir / "agent.md")
 
     # Handle --all flag

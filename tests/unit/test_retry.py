@@ -1,10 +1,8 @@
 """Unit tests for retry policies."""
 
 import pytest
-import asyncio
-from datetime import datetime, timedelta
 
-from familiar.core.retry import RetryPolicy, FixedRetry, ExponentialBackoff, BestOfN
+from familiar.core.retry import BestOfN, ExponentialBackoff, FixedRetry
 
 
 class TestFixedRetry:

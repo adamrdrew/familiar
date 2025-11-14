@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -13,9 +13,9 @@ class RetryPolicyConfig(BaseModel):
     type: str = Field(pattern="^(fixed|exponential|best_of_n)$")
     max_retries: int = Field(default=3, ge=0, le=10)
     delay: float = Field(default=1.0, ge=0)
-    base_delay: Optional[float] = Field(default=None, ge=0)
-    max_delay: Optional[float] = Field(default=None, ge=0)
-    n_runs: Optional[int] = Field(default=None, ge=1, le=20)
+    base_delay: float | None = Field(default=None, ge=0)
+    max_delay: float | None = Field(default=None, ge=0)
+    n_runs: int | None = Field(default=None, ge=1, le=20)
 
 
 class BrowserProfileConfig(BaseModel):
@@ -78,11 +78,11 @@ class SuiteConfig(BaseModel):
     retry_policy: RetryPolicyConfig = Field(default_factory=lambda: RetryPolicyConfig(type="fixed"))
     fuzziness: float = Field(default=0.0, ge=0.0, le=1.0)
     temperature: float = Field(default=0.7, ge=0.0, le=1.0)
-    headless: Optional[bool] = None
+    headless: bool | None = None
     screenshot_on_failure: bool = True
-    env: Dict[str, str] = Field(default_factory=dict)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    browser_profile: Optional[BrowserProfileConfig] = Field(
+    env: dict[str, str] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    browser_profile: BrowserProfileConfig | None = Field(
         default=None,
         description="Browser timing and behavior configuration (optional)",
     )
@@ -111,6 +111,6 @@ class TestSuite:
     name: str
     path: Path
     config: SuiteConfig
-    steps: List[Any] = field(default_factory=list)  # List[TestStep] forward ref
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    agent_instructions: Optional[str] = None  # Optional agent instructions from agent.md
+    steps: list[Any] = field(default_factory=list)  # List[TestStep] forward ref
+    metadata: dict[str, Any] = field(default_factory=dict)
+    agent_instructions: str | None = None  # Optional agent instructions from agent.md

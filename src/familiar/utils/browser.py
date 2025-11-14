@@ -1,8 +1,7 @@
 """Browser-use integration utilities."""
 
 import os
-from typing import Optional, Any
-from browser_use import Agent, Browser
+from typing import Any
 
 
 def create_llm(temperature: float = 0.5) -> Any:

@@ -3,8 +3,9 @@
 import json
 from datetime import datetime
 from pathlib import Path
+
 from familiar.formatters.json import JSONFormatter
-from familiar.models.result import SuiteResult, TestResult, ResultStatus, LogEntry, LogLevel
+from familiar.models.result import LogEntry, LogLevel, ResultStatus, SuiteResult, TestResult
 
 
 class TestJSONFormatter:

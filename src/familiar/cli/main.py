@@ -1,7 +1,6 @@
 """Main CLI entry point."""
 
 from pathlib import Path
-from typing import Optional
 
 import click
 
@@ -15,7 +14,6 @@ def cli() -> None:
     """Familiar: AI-driven end-to-end testing tool."""
     # Load .env file from current directory if it exists
     load_dotenv_file()
-    pass
 
 
 @cli.command()
@@ -33,7 +31,8 @@ def cli() -> None:
 @click.option(
     "--fast",
     is_flag=True,
-    help="Enable speed optimizations (flash mode, reduced wait times). May reduce reliability for complex scenarios.",
+    help="Enable speed optimizations (flash mode, reduced wait times). "
+    "May reduce reliability for complex scenarios.",
 )
 @click.option(
     "--scenario-agent-override",
@@ -42,7 +41,7 @@ def cli() -> None:
     help="Use only scenario-level agent.md instructions, ignoring global agent.md.",
 )
 def run(
-    suite_path_or_name: Optional[str],
+    suite_path_or_name: str | None,
     run_all: bool,
     format: str,
     headless: bool,
@@ -70,7 +69,7 @@ def run(
     "--format", "-f", type=click.Choice(["text", "json"]), default="text", help="Output format"
 )
 @click.option("--validate", is_flag=True, help="Validate suite configurations")
-def discover(directory: Optional[Path], format: str, validate: bool) -> None:
+def discover(directory: Path | None, format: str, validate: bool) -> None:
     """Discover test suites."""
     from familiar.formatters.json import JSONFormatter
 
@@ -86,7 +85,7 @@ def discover(directory: Optional[Path], format: str, validate: bool) -> None:
             click.echo(f"   Steps: {len(suite.steps)}")
             if validate:
                 # Basic validation - just check if we could parse it
-                click.echo(f"   ✓ Valid configuration")
+                click.echo("   ✓ Valid configuration")
             click.echo()
 
         if validate:

@@ -1,17 +1,15 @@
 """Test suite execution orchestration."""
 
 from datetime import datetime
-from typing import Optional, Dict
 
-from browser_use import Browser, Agent
+from browser_use import Browser
 
-from familiar.models.suite import TestSuite
-from familiar.models.result import SuiteResult, TestResult
 from familiar.core.executor import StepExecutor
 from familiar.core.retry import create_retry_policy
-from familiar.utils.env import get_env_vars
+from familiar.models.result import SuiteResult, TestResult
+from familiar.models.suite import TestSuite
 from familiar.utils.browser import create_llm
-
+from familiar.utils.env import get_env_vars
 
 # Speed optimization prompt for fast mode
 SPEED_OPTIMIZATION_PROMPT = """
@@ -24,40 +22,41 @@ Speed optimization instructions:
 
 def build_system_message(
     fast_mode: bool,
-    global_agent_md: Optional[str],
-    scenario_agent_md: Optional[str],
+    global_agent_md: str | None,
+    scenario_agent_md: str | None,
     override_flag: bool,
-) -> Optional[str]:
+) -> str | None:
     """Build combined system message from fast mode and agent instructions.
-    
+
     Combines components in priority order:
     1. Fast mode prompt (behavioral instructions)
     2. Global agent instructions (app-wide context)
     3. Scenario agent instructions (test-specific context)
-    
+
     Args:
         fast_mode: Whether fast mode is enabled.
         global_agent_md: Global agent instructions content (or None).
         scenario_agent_md: Scenario agent instructions content (or None).
         override_flag: If True, ignore global_agent_md when scenario_agent_md exists.
-        
+
     Returns:
         Combined system message string, or None if no components present.
     """
     components = []
-    
+
     # 1. Behavioral instructions (fast mode)
     if fast_mode:
         components.append(SPEED_OPTIMIZATION_PROMPT)
-    
+
     # 2. General context (global agent.md)
-    if not override_flag and global_agent_md:
+    # Only skip global if override is set AND scenario exists
+    if global_agent_md and not (override_flag and scenario_agent_md):
         components.append(global_agent_md)
-    
+
     # 3. Specific context (scenario agent.md)
     if scenario_agent_md:
         components.append(scenario_agent_md)
-    
+
     return "\n\n".join(components) if components else None
 
 
@@ -74,11 +73,11 @@ class SuiteRunner:
 
     def __init__(
         self,
-        variables: Optional[Dict[str, str]] = None,
+        variables: dict[str, str] | None = None,
         headless: bool = True,
         fast_mode: bool = False,
         scenario_agent_override: bool = False,
-        global_agent_instructions: Optional[str] = None,
+        global_agent_instructions: str | None = None,
     ):
         """Initialize the suite runner.
 

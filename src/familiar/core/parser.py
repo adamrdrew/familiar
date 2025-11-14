@@ -3,7 +3,6 @@
 import logging
 import re
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 import yaml
 
@@ -16,15 +15,15 @@ STEP_PATTERN = re.compile(r"^\d\d-.+\.md$")
 logger = logging.getLogger(__name__)
 
 
-def read_agent_instructions(path: Path) -> Optional[str]:
+def read_agent_instructions(path: Path) -> str | None:
     """Read agent instructions from file with robust error handling.
-    
+
     Args:
         path: Path to agent.md file
-        
+
     Returns:
         File content as string, or None if file doesn't exist or can't be read
-        
+
     Error Handling:
         - File not found: Returns None (no warning)
         - Encoding error: Returns None with WARNING log
@@ -34,13 +33,13 @@ def read_agent_instructions(path: Path) -> Optional[str]:
     """
     if not path.exists():
         return None
-    
+
     # Check file size
     try:
         file_size = path.stat().st_size
         if file_size == 0:
             return None  # Empty file
-        
+
         if file_size > 100 * 1024:  # 100KB
             logger.warning(
                 f"agent.md at {path} is large ({file_size / 1024:.1f}KB). "
@@ -49,7 +48,7 @@ def read_agent_instructions(path: Path) -> Optional[str]:
     except OSError as e:
         logger.warning(f"Could not stat agent.md at {path}: {e}")
         return None
-    
+
     # Read file with encoding fallback
     try:
         content = path.read_text(encoding="utf-8")
@@ -60,9 +59,7 @@ def read_agent_instructions(path: Path) -> Optional[str]:
         try:
             content = path.read_text(encoding="latin-1").strip()
             if content:
-                logger.warning(
-                    f"agent.md at {path} is not UTF-8, used latin-1 fallback"
-                )
+                logger.warning(f"agent.md at {path} is not UTF-8, used latin-1 fallback")
                 return content
             return None
         except Exception as e:
@@ -109,7 +106,7 @@ class SuiteParser:
             data = yaml.safe_load(f)
         return SuiteConfig(**data)
 
-    def _parse_steps(self, suite_path: Path) -> List[TestStep]:
+    def _parse_steps(self, suite_path: Path) -> list[TestStep]:
         """Find and parse all numbered step files in suite directory.
 
         Steps must follow pattern: NN-description.md (e.g., 00-login.md, 01-navigate.md)
@@ -146,7 +143,7 @@ class SuiteParser:
 
         return steps
 
-    def _categorize_step_files(self, files: List[Path]) -> Tuple[List[Path], List[Path]]:
+    def _categorize_step_files(self, files: list[Path]) -> tuple[list[Path], list[Path]]:
         """Separate files into numbered steps and skipped files.
 
         Returns:
@@ -163,7 +160,7 @@ class SuiteParser:
 
         return numbered, skipped
 
-    def _validate_step_prefixes(self, step_files: List[Path]) -> None:
+    def _validate_step_prefixes(self, step_files: list[Path]) -> None:
         """Ensure no duplicate numeric prefixes in step files.
 
         Raises:

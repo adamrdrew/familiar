@@ -1,9 +1,7 @@
 """Unit tests for utility modules."""
 
-import os
-import pytest
 from familiar.utils.env import get_env_vars
-from familiar.utils.interpolation import interpolate_variables, extract_variables
+from familiar.utils.interpolation import extract_variables, interpolate_variables
 
 
 class TestEnvUtils:

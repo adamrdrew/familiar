@@ -1,14 +1,13 @@
 """Dotenv file loading utilities."""
 
-from pathlib import Path
-from typing import Optional
 import logging
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 
 def load_dotenv_file(
-    dotenv_path: Optional[Path] = None,
+    dotenv_path: Path | None = None,
     verbose: bool = False,
 ) -> bool:
     """Load environment variables from .env file.

@@ -1,10 +1,10 @@
 """Integration tests for multi-suite functionality."""
 
+import json
 import subprocess
 import sys
-from pathlib import Path
+
 import pytest
-import json
 
 
 @pytest.mark.asyncio

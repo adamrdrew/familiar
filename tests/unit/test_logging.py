@@ -1,6 +1,7 @@
 """Unit tests for logging setup and handlers."""
 
 import logging
+
 from familiar.logging.handlers import create_rich_handler, setup_rich_logging
 
 
