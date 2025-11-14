@@ -1,0 +1,119 @@
+# GitHub Actions Workflow Contract: PR Checks
+#
+# Purpose: Run Python test suite on all pull requests
+# Triggers: PR opened, synchronized (new commits), reopened
+# Platforms: Python 3.11, 3.12, 3.13 on Linux
+# Performance: <3 minutes with warm cache, <5 minutes cold cache
+#
+# This file serves as both documentation and the actual implementation.
+# Copy to `.github/workflows/pr-checks.yml` to activate.
+
+name: PR Checks
+
+# Workflow triggers on pull request events
+# Targets main/master branches (adjust based on your default branch)
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+    # Default types: opened, synchronize, reopened
+    # Explicitly listing them is optional but improves clarity:
+    # types: [opened, synchronize, reopened]
+
+jobs:
+  # Single job that runs tests across multiple Python versions
+  test:
+    # Matrix variable in job name creates separate check for each version
+    # Appears in PR as: "Test (Python 3.11)", "Test (Python 3.12)", etc.
+    name: Test (Python ${{ matrix.python-version }})
+    
+    # Use GitHub-hosted Ubuntu runner (free for public repos)
+    runs-on: ubuntu-latest
+    
+    # Matrix strategy: Run tests on multiple Python versions in parallel
+    strategy:
+      matrix:
+        # Familiar requires Python 3.11+
+        # Testing 3.12 and 3.13 ensures forward compatibility
+        python-version: ["3.11", "3.12", "3.13"]
+      
+      # fail-fast: false means all Python versions run even if one fails
+      # This provides complete visibility into compatibility issues
+      fail-fast: false
+    
+    steps:
+      # Step 1: Clone repository code
+      # Required: Must run before any other steps
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Step 2: Install specified Python version
+      # Version comes from matrix (3.11, 3.12, or 3.13)
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      # Step 3: Install uv package manager
+      # Familiar uses uv (not pip) for dependency management
+      # Official action from Astral (uv maintainers)
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+      
+      # Step 4: Cache downloaded packages for faster subsequent runs
+      # Cache key includes OS, Python version, and lock file hash
+      # Cache invalidates automatically when uv.lock changes
+      # Performance: 75-85% speedup on cache hit (~30s → ~5s)
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          # uv stores downloaded packages in ~/.cache/uv
+          path: ~/.cache/uv
+          
+          # Composite key: OS + Python version + lock file hash
+          # Example: uv-Linux-3.11-abc123def456
+          key: uv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
+          
+          # Fallback keys if exact match not found
+          # Tries: OS + Python version (ignores lock file hash)
+          # Provides partial cache hit even after dependency changes
+          restore-keys: |
+            uv-${{ runner.os }}-${{ matrix.python-version }}-
+      
+      # Step 5: Install project dependencies
+      # uv sync:
+      #   - Reads pyproject.toml and uv.lock
+      #   - Creates .venv/ virtual environment
+      #   - Installs all dependencies (including dev group)
+      #   - Respects lock file for reproducible builds
+      - name: Install dependencies
+        run: uv sync
+      
+      # Step 6: Run test suite
+      # uv run: Automatically activates virtual environment
+      # pytest tests/: Run all tests (unit + integration + contract)
+      # -v: Verbose output for debugging failures
+      # --strict-markers: Fail if unknown pytest markers used (catches typos)
+      - name: Run tests
+        run: uv run pytest tests/ -v --strict-markers
+
+# Expected outcomes:
+# ✅ All tests pass (Python 3.11) → Green check on PR
+# ✅ All tests pass (Python 3.12) → Green check on PR
+# ✅ All tests pass (Python 3.13) → Green check on PR
+# ❌ Any test fails → Red X on PR (prevents merge if branch protection enabled)
+#
+# Workflow performance (typical PR):
+# - First run (cold cache): ~50-60 seconds per Python version
+# - Subsequent runs (warm cache): ~30-40 seconds per Python version
+# - All versions run in parallel, so total time ≈ slowest single job
+#
+# Branch protection (optional but recommended):
+# Settings → Branches → Branch protection rules for main/master:
+#   ✅ Require status checks to pass before merging
+#   ✅ Status checks required:
+#      - Test (Python 3.11)
+#      - Test (Python 3.12)
+#      - Test (Python 3.13)
+
