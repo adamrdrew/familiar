@@ -21,6 +21,12 @@ temperature: 0.7
 headless: true
 screenshot_on_failure: true
 
+# Performance tuning - balanced for reliability
+# For speed testing in dev, use: 0.2 / 0.2
+browser_profile:
+  minimum_wait_page_load_time: 1.5  # E-commerce sites often have heavy pages
+  wait_between_actions: 1.0
+
 # E-commerce specific variables
 env:
   PRODUCT_SEARCH: "laptop"

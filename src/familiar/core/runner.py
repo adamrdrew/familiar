@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Optional, Dict
 
-from browser_use import Browser
+from browser_use import Browser, Agent
 
 from familiar.models.suite import TestSuite
 from familiar.models.result import SuiteResult, TestResult
@@ -10,6 +10,15 @@ from familiar.core.executor import StepExecutor
 from familiar.core.retry import create_retry_policy
 from familiar.utils.env import get_env_vars
 from familiar.utils.browser import create_llm
+
+
+# Speed optimization prompt for fast mode
+SPEED_OPTIMIZATION_PROMPT = """
+Speed optimization instructions:
+- Be extremely concise and direct in your responses
+- Get to the goal as quickly as possible
+- Use multi-action sequences whenever possible to reduce steps
+"""
 
 
 class SuiteRunner:
@@ -20,12 +29,14 @@ class SuiteRunner:
     - Handle suite-level configuration (retries, timeouts)
     - Aggregate results from individual steps
     - Apply suite-level rules (fuzziness, best-of-N)
+    - Apply performance optimizations (fast mode)
     """
     
     def __init__(
         self,
         variables: Optional[Dict[str, str]] = None,
         headless: bool = True,
+        fast_mode: bool = False,
     ):
         """Initialize the suite runner.
         
@@ -33,9 +44,11 @@ class SuiteRunner:
             variables: Environment variables for step interpolation.
                       If None, will load from os.environ.
             headless: Whether to run browser in headless mode.
+            fast_mode: Whether to enable speed optimizations (flash mode, speed prompts).
         """
         self.variables = variables if variables is not None else get_env_vars()
         self.headless = headless
+        self.fast_mode = fast_mode
     
     async def run_suite(self, suite: TestSuite) -> SuiteResult:
         """Execute all steps in a test suite with retry support.
@@ -63,10 +76,22 @@ class SuiteRunner:
             n_runs=retry_config.n_runs or 1,
         )
         
+        # Get browser profile configuration from suite (or use defaults)
+        browser_profile_config = suite.config.get_browser_profile()
+        
+        # CLI headless flag overrides suite browser_profile.headless setting
+        browser_profile_config.headless = self.headless
+        
+        # Convert to browser-use BrowserProfile
+        browser_profile = browser_profile_config.to_browser_profile()
+        
         # Create browser and LLM ONCE for entire scenario
         # This enables cumulative testing (login → navigate → action)
-        # Note: browser-use handles browser cleanup automatically
-        browser = Browser(headless=self.headless)
+        browser = Browser(
+            headless=self.headless,
+            keep_alive=True,
+            browser_profile=browser_profile,
+        )
         llm = create_llm(temperature=suite.config.temperature)
         
         # Create executor with suite configuration
@@ -77,13 +102,20 @@ class SuiteRunner:
         
         # Execute each step in sequence using the SAME browser
         for step in suite.steps:
+            # Prepare fast mode parameters
+            flash_mode = self.fast_mode
+            extend_system_message = SPEED_OPTIMIZATION_PROMPT if self.fast_mode else None
+            
             result = await executor.execute_step(
                 step=step,
                 browser=browser,
                 llm=llm,
                 timeout=suite.config.step_timeout,
+                flash_mode=flash_mode,
+                extend_system_message=extend_system_message,
             )
             test_results.append(result)
+
             
             # Stop on failure if fuzziness is 0.0 (no tolerance for failures)
             if result.status.value == "failed" and suite.config.fuzziness == 0.0:
@@ -92,6 +124,8 @@ class SuiteRunner:
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
         
+        await browser.kill()
+
         return SuiteResult(
             suite_name=suite.name,
             test_results=test_results,

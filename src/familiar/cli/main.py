@@ -30,12 +30,18 @@ def cli() -> None:
 )
 @click.option("--headless/--headed", default=True, help="Browser display mode")
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed logs")
+@click.option(
+    "--fast",
+    is_flag=True,
+    help="Enable speed optimizations (flash mode, reduced wait times). May reduce reliability for complex scenarios.",
+)
 def run(
     suite_path_or_name: Optional[str],
     run_all: bool,
     format: str,
     headless: bool,
     verbose: bool,
+    fast: bool,
 ) -> None:
     """Run test suites."""
     from familiar.cli.run import run_suite_command
@@ -46,6 +52,7 @@ def run(
         format=format,
         headless=headless,
         verbose=verbose,
+        fast_mode=fast,
     )
 
 

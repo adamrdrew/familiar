@@ -46,6 +46,8 @@ class StepExecutor:
         browser: Browser,
         llm: Any,
         timeout: int = 60,
+        flash_mode: bool = False,
+        extend_system_message: Optional[str] = None,
     ) -> TestResult:
         """Execute a single test step with retry support.
         
@@ -57,6 +59,8 @@ class StepExecutor:
             browser: Browser instance to use for this step.
             llm: LLM client instance to use for this step.
             timeout: Maximum execution time in seconds.
+            flash_mode: Enable flash mode for faster LLM inference (optional).
+            extend_system_message: Additional system prompt to append (optional).
         
         Returns:
             TestResult with execution outcome, logs, and timing.
@@ -73,7 +77,9 @@ class StepExecutor:
                     timestamp=datetime.now(),
                 ))
             
-            result = await self._execute_step_once(step, browser, llm, timeout, attempt + 1)
+            result = await self._execute_step_once(
+                step, browser, llm, timeout, attempt + 1, flash_mode, extend_system_message
+            )
             
             # Merge logs from this attempt
             all_logs.extend(result.logs)
@@ -102,6 +108,8 @@ class StepExecutor:
         llm: Any,
         timeout: int,
         attempt: int,
+        flash_mode: bool = False,
+        extend_system_message: Optional[str] = None,
     ) -> TestResult:
         """Execute a single attempt of a test step.
         
@@ -113,6 +121,8 @@ class StepExecutor:
             llm: LLM client instance to use.
             timeout: Maximum execution time in seconds.
             attempt: Current attempt number (1-indexed).
+            flash_mode: Enable flash mode for faster LLM inference.
+            extend_system_message: Additional system prompt to append.
         
         Returns:
             TestResult with execution outcome for this attempt.
@@ -139,17 +149,37 @@ class StepExecutor:
             ))
             
             # Create agent with existing browser and LLM
+            mode_info = " (fast mode)" if flash_mode else ""
             logs.append(LogEntry(
                 level=LogLevel.INFO,
-                message="Creating agent with persistent browser session",
+                message=f"Creating agent with persistent browser session{mode_info}",
                 timestamp=datetime.now(),
             ))
             
-            agent = Agent(
-                task=interpolated_content,
-                llm=llm,
-                browser=browser,
-            )
+            # Build agent kwargs with conditional fast mode parameters
+            agent_kwargs = {
+                "task": interpolated_content,
+                "llm": llm,
+                "browser": browser,
+            }
+            
+            if flash_mode:
+                agent_kwargs["flash_mode"] = True
+                logs.append(LogEntry(
+                    level=LogLevel.DEBUG,
+                    message="Fast mode enabled: flash_mode=True",
+                    timestamp=datetime.now(),
+                ))
+            
+            if extend_system_message:
+                agent_kwargs["extend_system_message"] = extend_system_message
+                logs.append(LogEntry(
+                    level=LogLevel.DEBUG,
+                    message="Fast mode enabled: speed optimization prompt injected",
+                    timestamp=datetime.now(),
+                ))
+            
+            agent = Agent(**agent_kwargs)
             
             # Execute the step with timeout
             logs.append(LogEntry(
