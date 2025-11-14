@@ -11,20 +11,20 @@
 
 **Status**: ⏳ **Ready to Start**
 
-- ⏳ **Phase 1 (Baseline Verification)**: 0/1 complete
-- ⏳ **Phase 2 (Model Updates)**: 0/2 complete
-- ⏳ **Phase 3 (File Reading Utility)**: 0/2 complete
-- ⏳ **Phase 4 (Prompt Building)**: 0/2 complete
-- ⏳ **Phase 5 (Parser Updates)**: 0/2 complete
-- ⏳ **Phase 6 (Runner Updates)**: 0/3 complete
-- ⏳ **Phase 7 (CLI Updates)**: 0/3 complete
+- ✅ **Phase 1 (Baseline Verification)**: 1/1 complete
+- ✅ **Phase 2 (Model Updates)**: 2/2 complete
+- ✅ **Phase 3 (File Reading Utility)**: 2/2 complete
+- ✅ **Phase 4 (Prompt Building)**: 2/2 complete
+- ✅ **Phase 5 (Parser Updates)**: 2/2 complete
+- ✅ **Phase 6 (Runner Updates)**: 3/3 complete
+- ✅ **Phase 7 (CLI Updates)**: 3/3 complete
 - ⏳ **Phase 8 (Unit Tests)**: 0/15 complete
 - ⏳ **Phase 9 (Integration Tests)**: 0/6 complete
 - ⏳ **Phase 10 (Contract Tests)**: 0/2 complete
 - ⏳ **Phase 11 (Documentation & Examples)**: 0/5 complete
 - ⏳ **Phase 12 (Finalization)**: 0/5 complete
 
-**Total**: 0/48 tasks complete
+**Total**: 20/48 tasks complete (42%)
 
 ---
 
@@ -45,7 +45,7 @@
 
 **Independent Test Criteria**: All 103 existing tests pass without modification.
 
-- [ ] T001 Run existing test suite to establish baseline (pytest tests/ -v)
+- [X] T001 Run existing test suite to establish baseline (pytest tests/ -v)
 
 ---
 
@@ -55,8 +55,8 @@
 
 **Independent Test Criteria**: Existing tests still pass with backward compatible changes.
 
-- [ ] T002 Add agent_instructions field to TestSuite dataclass in src/familiar/models/suite.py
-- [ ] T003 [P] Add scenario_agent_override and global_agent_instructions parameters to SuiteRunner.__init__ in src/familiar/core/runner.py
+- [X] T002 Add agent_instructions field to TestSuite dataclass in src/familiar/models/suite.py
+- [X] T003 [P] Add scenario_agent_override and global_agent_instructions parameters to SuiteRunner.__init__ in src/familiar/core/runner.py
 
 **Validation**:
 ```bash
@@ -72,8 +72,8 @@ pytest tests/integration/test_runner.py -v
 
 **Independent Test Criteria**: File reading handles all error cases gracefully (missing, encoding, permissions, size).
 
-- [ ] T004 Add read_agent_instructions() function in src/familiar/core/parser.py with UTF-8/latin-1 fallback
-- [ ] T005 Add file size check and warning for files >100KB in read_agent_instructions()
+- [X] T004 Add read_agent_instructions() function in src/familiar/core/parser.py with UTF-8/latin-1 fallback
+- [X] T005 Add file size check and warning for files >100KB in read_agent_instructions()
 
 **Validation**:
 ```python
@@ -92,8 +92,8 @@ assert result is None
 
 **Independent Test Criteria**: Prompt building correctly combines components in all 11 specified scenarios.
 
-- [ ] T006 Add build_system_message() function at module level in src/familiar/core/runner.py
-- [ ] T007 Implement prompt combination logic following Fast Mode → Global → Scenario order
+- [X] T006 Add build_system_message() function at module level in src/familiar/core/runner.py
+- [X] T007 Implement prompt combination logic following Fast Mode → Global → Scenario order
 
 **Validation**:
 ```python
@@ -112,8 +112,8 @@ assert "Scenario" in result
 
 **Independent Test Criteria**: Parser reads agent.md from suite directory and stores in TestSuite.agent_instructions.
 
-- [ ] T008 Update SuiteParser.parse_suite() to read scenario agent.md file in src/familiar/core/parser.py
-- [ ] T009 Add agent_instructions to TestSuite construction in parse_suite() method
+- [X] T008 Update SuiteParser.parse_suite() to read scenario agent.md file in src/familiar/core/parser.py
+- [X] T009 Add agent_instructions to TestSuite construction in parse_suite() method
 
 **Validation**:
 ```bash
@@ -128,9 +128,9 @@ pytest tests/unit/test_parser.py -v
 
 **Independent Test Criteria**: Runner builds correct system message for all combinations of fast mode, global, scenario, and override flag.
 
-- [ ] T010 Update SuiteRunner.__init__ to store new parameters (scenario_agent_override, global_agent_instructions)
-- [ ] T011 Replace fast mode prompt logic with build_system_message() call in run_suite() method (~line 108)
-- [ ] T012 Pass combined system message to executor via extend_system_message parameter
+- [X] T010 Update SuiteRunner.__init__ to store new parameters (scenario_agent_override, global_agent_instructions)
+- [X] T011 Replace fast mode prompt logic with build_system_message() call in run_suite() method (~line 108)
+- [X] T012 Pass combined system message to executor via extend_system_message parameter
 
 **Validation**:
 ```bash
@@ -145,9 +145,9 @@ pytest tests/integration/test_runner.py -v
 
 **Independent Test Criteria**: CLI accepts new flag and passes parameters correctly to runner.
 
-- [ ] T013 Add --scenario-agent-override flag to run command in src/familiar/cli/main.py
-- [ ] T014 Update run() function signature to accept scenario_agent_override parameter
-- [ ] T015 Add global agent.md discovery in run_suite_command() in src/familiar/cli/run.py before creating runner
+- [X] T013 Add --scenario-agent-override flag to run command in src/familiar/cli/main.py
+- [X] T014 Update run() function signature to accept scenario_agent_override parameter
+- [X] T015 Add global agent.md discovery in run_suite_command() in src/familiar/cli/run.py before creating runner
 
 **Validation**:
 ```bash

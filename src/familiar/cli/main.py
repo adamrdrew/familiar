@@ -35,6 +35,12 @@ def cli() -> None:
     is_flag=True,
     help="Enable speed optimizations (flash mode, reduced wait times). May reduce reliability for complex scenarios.",
 )
+@click.option(
+    "--scenario-agent-override",
+    is_flag=True,
+    default=False,
+    help="Use only scenario-level agent.md instructions, ignoring global agent.md.",
+)
 def run(
     suite_path_or_name: Optional[str],
     run_all: bool,
@@ -42,6 +48,7 @@ def run(
     headless: bool,
     verbose: bool,
     fast: bool,
+    scenario_agent_override: bool,
 ) -> None:
     """Run test suites."""
     from familiar.cli.run import run_suite_command
@@ -53,6 +60,7 @@ def run(
         headless=headless,
         verbose=verbose,
         fast_mode=fast,
+        scenario_agent_override=scenario_agent_override,
     )
 
 

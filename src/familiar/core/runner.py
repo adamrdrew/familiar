@@ -22,6 +22,45 @@ Speed optimization instructions:
 """
 
 
+def build_system_message(
+    fast_mode: bool,
+    global_agent_md: Optional[str],
+    scenario_agent_md: Optional[str],
+    override_flag: bool,
+) -> Optional[str]:
+    """Build combined system message from fast mode and agent instructions.
+    
+    Combines components in priority order:
+    1. Fast mode prompt (behavioral instructions)
+    2. Global agent instructions (app-wide context)
+    3. Scenario agent instructions (test-specific context)
+    
+    Args:
+        fast_mode: Whether fast mode is enabled.
+        global_agent_md: Global agent instructions content (or None).
+        scenario_agent_md: Scenario agent instructions content (or None).
+        override_flag: If True, ignore global_agent_md when scenario_agent_md exists.
+        
+    Returns:
+        Combined system message string, or None if no components present.
+    """
+    components = []
+    
+    # 1. Behavioral instructions (fast mode)
+    if fast_mode:
+        components.append(SPEED_OPTIMIZATION_PROMPT)
+    
+    # 2. General context (global agent.md)
+    if not override_flag and global_agent_md:
+        components.append(global_agent_md)
+    
+    # 3. Specific context (scenario agent.md)
+    if scenario_agent_md:
+        components.append(scenario_agent_md)
+    
+    return "\n\n".join(components) if components else None
+
+
 class SuiteRunner:
     """Orchestrates execution of test suites.
 
@@ -38,6 +77,8 @@ class SuiteRunner:
         variables: Optional[Dict[str, str]] = None,
         headless: bool = True,
         fast_mode: bool = False,
+        scenario_agent_override: bool = False,
+        global_agent_instructions: Optional[str] = None,
     ):
         """Initialize the suite runner.
 
@@ -46,10 +87,14 @@ class SuiteRunner:
                       If None, will load from os.environ.
             headless: Whether to run browser in headless mode.
             fast_mode: Whether to enable speed optimizations (flash mode, speed prompts).
+            scenario_agent_override: Whether to use only scenario-level agent instructions.
+            global_agent_instructions: Global agent instructions from familiar root.
         """
         self.variables = variables if variables is not None else get_env_vars()
         self.headless = headless
         self.fast_mode = fast_mode
+        self.scenario_agent_override = scenario_agent_override
+        self.global_agent_instructions = global_agent_instructions
 
     async def run_suite(self, suite: TestSuite) -> SuiteResult:
         """Execute all steps in a test suite with retry support.
@@ -103,9 +148,14 @@ class SuiteRunner:
 
         # Execute each step in sequence using the SAME browser
         for step in suite.steps:
-            # Prepare fast mode parameters
+            # Build combined system message from fast mode + agent instructions
             flash_mode = self.fast_mode
-            extend_system_message = SPEED_OPTIMIZATION_PROMPT if self.fast_mode else None
+            extend_system_message = build_system_message(
+                fast_mode=self.fast_mode,
+                global_agent_md=self.global_agent_instructions,
+                scenario_agent_md=suite.agent_instructions,
+                override_flag=self.scenario_agent_override,
+            )
 
             result = await executor.execute_step(
                 step=step,

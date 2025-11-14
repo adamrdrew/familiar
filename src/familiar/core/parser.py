@@ -1,8 +1,9 @@
 """Parse suite configurations and test steps."""
 
+import logging
 import re
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import yaml
 
@@ -11,6 +12,65 @@ from familiar.models.suite import SuiteConfig, TestSuite
 
 # Pattern for numbered step files: 00-name.md, 01-name.md, etc.
 STEP_PATTERN = re.compile(r"^\d\d-.+\.md$")
+
+logger = logging.getLogger(__name__)
+
+
+def read_agent_instructions(path: Path) -> Optional[str]:
+    """Read agent instructions from file with robust error handling.
+    
+    Args:
+        path: Path to agent.md file
+        
+    Returns:
+        File content as string, or None if file doesn't exist or can't be read
+        
+    Error Handling:
+        - File not found: Returns None (no warning)
+        - Encoding error: Returns None with WARNING log
+        - Permission error: Returns None with WARNING log
+        - Empty file: Returns None (no warning)
+        - Large file (>100KB): Returns content with WARNING log
+    """
+    if not path.exists():
+        return None
+    
+    # Check file size
+    try:
+        file_size = path.stat().st_size
+        if file_size == 0:
+            return None  # Empty file
+        
+        if file_size > 100 * 1024:  # 100KB
+            logger.warning(
+                f"agent.md at {path} is large ({file_size / 1024:.1f}KB). "
+                "Consider keeping instructions concise for better results."
+            )
+    except OSError as e:
+        logger.warning(f"Could not stat agent.md at {path}: {e}")
+        return None
+    
+    # Read file with encoding fallback
+    try:
+        content = path.read_text(encoding="utf-8")
+        # Strip whitespace and return None if empty
+        content = content.strip()
+        return content if content else None
+    except UnicodeDecodeError:
+        try:
+            content = path.read_text(encoding="latin-1").strip()
+            if content:
+                logger.warning(
+                    f"agent.md at {path} is not UTF-8, used latin-1 fallback"
+                )
+                return content
+            return None
+        except Exception as e:
+            logger.warning(f"Could not read agent.md at {path}: {e}")
+            return None
+    except Exception as e:
+        logger.warning(f"Could not read agent.md at {path}: {e}")
+        return None
 
 
 class SuiteParser:
@@ -31,11 +91,16 @@ class SuiteParser:
         # Find and parse step files
         steps = self._parse_steps(suite_path)
 
+        # Read agent instructions if present
+        agent_file = suite_path / "agent.md"
+        agent_instructions = read_agent_instructions(agent_file)
+
         return TestSuite(
             name=config.name,
             path=suite_path,
             config=config,
             steps=steps,
+            agent_instructions=agent_instructions,
         )
 
     def _parse_config(self, config_file: Path) -> SuiteConfig:

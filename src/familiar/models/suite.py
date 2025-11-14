@@ -113,3 +113,4 @@ class TestSuite:
     config: SuiteConfig
     steps: List[Any] = field(default_factory=list)  # List[TestStep] forward ref
     metadata: Dict[str, Any] = field(default_factory=dict)
+    agent_instructions: Optional[str] = None  # Optional agent instructions from agent.md

@@ -18,6 +18,8 @@ async def run_suite_async(
     headless: bool,
     verbose: bool,
     fast_mode: bool = False,
+    scenario_agent_override: bool = False,
+    global_agent_instructions: Optional[str] = None,
 ) -> int:
     """Run a single test suite asynchronously.
 
@@ -43,7 +45,12 @@ async def run_suite_async(
         click.echo(f"\n🚀 Running test suite: [bold]{suite.name}[/bold]{mode_indicator}\n", nl=True)
 
         # Run the suite
-        runner = SuiteRunner(headless=headless, fast_mode=fast_mode)
+        runner = SuiteRunner(
+            headless=headless,
+            fast_mode=fast_mode,
+            scenario_agent_override=scenario_agent_override,
+            global_agent_instructions=global_agent_instructions,
+        )
         result = await runner.run_suite(suite)
 
         # Format and display results
@@ -71,6 +78,8 @@ async def run_all_suites_async(
     verbose: bool,
     format: str,
     fast_mode: bool = False,
+    scenario_agent_override: bool = False,
+    global_agent_instructions: Optional[str] = None,
 ) -> int:
     """Run all test suites in a directory asynchronously.
 
@@ -103,7 +112,12 @@ async def run_all_suites_async(
     click.echo(f"\n🚀 Running {len(suites)} test suites from: {directory}{mode_indicator}\n")
 
     # Run each suite
-    runner = SuiteRunner(headless=headless, fast_mode=fast_mode)
+    runner = SuiteRunner(
+        headless=headless,
+        fast_mode=fast_mode,
+        scenario_agent_override=scenario_agent_override,
+        global_agent_instructions=global_agent_instructions,
+    )
     results = []
     formatter = TextFormatter(verbose=verbose)
 
@@ -169,6 +183,7 @@ def run_suite_command(
     headless: bool,
     verbose: bool,
     fast_mode: bool = False,
+    scenario_agent_override: bool = False,
 ) -> None:
     """Run test suites command handler.
 
@@ -179,10 +194,25 @@ def run_suite_command(
         headless: Whether to run browser in headless mode.
         verbose: Whether to show detailed logs.
         fast_mode: Whether to enable speed optimizations.
+        scenario_agent_override: Whether to use only scenario-level agent instructions.
     """
     if format == "junit":
         click.echo(f"⚠️  Format 'junit' not yet implemented, using text", err=True)
         format = "text"
+
+    # Discover global agent instructions
+    from familiar.core.parser import read_agent_instructions
+    
+    root_dir = Path("./familiar")  # Default familiar root
+    if run_all and suite_path_or_name:
+        root_dir = Path(suite_path_or_name)
+    elif not run_all and suite_path_or_name:
+        # For single suite, find the parent directory (familiar root)
+        suite_path = Path(suite_path_or_name)
+        if suite_path.is_dir() and (suite_path / "suite.yaml").exists():
+            root_dir = suite_path.parent
+    
+    global_agent_instructions = read_agent_instructions(root_dir / "agent.md")
 
     # Handle --all flag
     if run_all:
@@ -207,6 +237,8 @@ def run_suite_command(
                 verbose=verbose,
                 format=format,
                 fast_mode=fast_mode,
+                scenario_agent_override=scenario_agent_override,
+                global_agent_instructions=global_agent_instructions,
             )
         )
         sys.exit(exit_code)
@@ -230,6 +262,8 @@ def run_suite_command(
             headless=headless,
             verbose=verbose,
             fast_mode=fast_mode,
+            scenario_agent_override=scenario_agent_override,
+            global_agent_instructions=global_agent_instructions,
         )
     )
 
