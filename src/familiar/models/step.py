@@ -34,8 +34,3 @@ class TestStep:
         matches = re.findall(pattern, self.content)
         return {var for var, _ in matches}
 
-    @property
-    def resolved_content(self) -> str:
-        """Content after variable interpolation (placeholder for now)."""
-        return self.content
-

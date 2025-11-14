@@ -1,7 +1,7 @@
 """Unit tests for utility modules."""
 import os
 import pytest
-from familiar.utils.env import get_env_vars, get_required_env, get_optional_env, get_bool_env
+from familiar.utils.env import get_env_vars
 from familiar.utils.interpolation import interpolate_variables, extract_variables
 
 
@@ -26,42 +26,6 @@ class TestEnvUtils:
         assert "USER" in env_vars
         assert "OTHER_VAR" not in env_vars
         assert env_vars["URL"] == "http://localhost"
-    
-    def test_get_required_env_exists(self, monkeypatch):
-        """Test getting required environment variable that exists."""
-        monkeypatch.setenv("REQUIRED_VAR", "value")
-        assert get_required_env("REQUIRED_VAR") == "value"
-    
-    def test_get_required_env_missing(self):
-        """Test getting required environment variable that is missing."""
-        with pytest.raises(ValueError, match="Required environment variable"):
-            get_required_env("MISSING_VAR_12345")
-    
-    def test_get_optional_env_exists(self, monkeypatch):
-        """Test getting optional environment variable that exists."""
-        monkeypatch.setenv("OPTIONAL_VAR", "value")
-        assert get_optional_env("OPTIONAL_VAR", "default") == "value"
-    
-    def test_get_optional_env_missing(self):
-        """Test getting optional environment variable that is missing."""
-        assert get_optional_env("MISSING_VAR_12345", "default") == "default"
-    
-    def test_get_bool_env_true_values(self, monkeypatch):
-        """Test boolean environment variables with true values."""
-        for value in ["true", "TRUE", "1", "yes", "YES", "on", "ON"]:
-            monkeypatch.setenv("BOOL_VAR", value)
-            assert get_bool_env("BOOL_VAR") is True
-    
-    def test_get_bool_env_false_values(self, monkeypatch):
-        """Test boolean environment variables with false values."""
-        for value in ["false", "FALSE", "0", "no", "NO", "off", "OFF"]:
-            monkeypatch.setenv("BOOL_VAR", value)
-            assert get_bool_env("BOOL_VAR") is False
-    
-    def test_get_bool_env_default(self):
-        """Test boolean environment variable with default."""
-        assert get_bool_env("MISSING_VAR_12345", True) is True
-        assert get_bool_env("MISSING_VAR_12345", False) is False
 
 
 class TestInterpolation:

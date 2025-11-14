@@ -14,7 +14,6 @@ class RetryPolicyConfig(BaseModel):
     delay: float = Field(default=1.0, ge=0)
     base_delay: Optional[float] = Field(default=None, ge=0)
     max_delay: Optional[float] = Field(default=None, ge=0)
-    multiplier: Optional[float] = Field(default=None, ge=1)
     n_runs: Optional[int] = Field(default=None, ge=1, le=20)
 
 
