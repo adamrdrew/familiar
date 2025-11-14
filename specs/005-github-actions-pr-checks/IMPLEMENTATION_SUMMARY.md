@@ -35,7 +35,7 @@
 2. ✅ Setup Python (`actions/setup-python@v5`)
 3. ✅ Install uv (`astral-sh/setup-uv@v4`)
 4. ✅ Cache dependencies (`actions/cache@v4`)
-5. ✅ Install dependencies (`uv sync`)
+5. ✅ Install dependencies (`uv sync --extra dev` - installs pytest and dev tools)
 6. ✅ Run tests (`uv run pytest tests/ -v --strict-markers`)
 
 **Cache Configuration**:
@@ -264,6 +264,12 @@ All design documents available in `specs/005-github-actions-pr-checks/`:
 - Check: Workflow file is on `master` branch (merge PR first)
 - Check: PR targets `master` (not another branch)
 - Check: GitHub Actions enabled in repo settings
+
+**If "pytest not found" error** (IMPORTANT):
+- Check: Workflow uses `uv sync --extra dev` (NOT just `uv sync`)
+- Dev dependencies (pytest, mypy, ruff) are in `[project.optional-dependencies]`
+- Must explicitly install dev extras with `--extra dev` flag
+- Local testing: Run `uv sync --extra dev` before `uv run pytest`
 
 **If tests fail in CI but pass locally**:
 - Check: Python version matches (local vs CI)

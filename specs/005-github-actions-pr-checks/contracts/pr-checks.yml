@@ -82,13 +82,13 @@ jobs:
             uv-${{ runner.os }}-${{ matrix.python-version }}-
       
       # Step 5: Install project dependencies
-      # uv sync:
+      # uv sync --extra dev:
       #   - Reads pyproject.toml and uv.lock
       #   - Creates .venv/ virtual environment
-      #   - Installs all dependencies (including dev group)
+      #   - Installs all dependencies + dev group (pytest, mypy, ruff)
       #   - Respects lock file for reproducible builds
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --extra dev
       
       # Step 6: Run test suite
       # uv run: Automatically activates virtual environment
