@@ -1,4 +1,5 @@
 """Test suite discovery."""
+
 from pathlib import Path
 
 import pytest
@@ -61,4 +62,3 @@ def test_discover_no_suites(tmp_path: Path) -> None:
     discovery = TestSuiteDiscovery()
     suites = discovery.discover_suites(tmp_path)
     assert len(suites) == 0
-

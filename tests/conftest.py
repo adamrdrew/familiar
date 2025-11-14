@@ -1,4 +1,5 @@
 """Pytest configuration and fixtures."""
+
 from pathlib import Path
 
 import pytest
@@ -8,4 +9,3 @@ import pytest
 def temp_test_dir(tmp_path: Path) -> Path:
     """Create a temporary test directory."""
     return tmp_path
-

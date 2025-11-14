@@ -1,4 +1,5 @@
 """Integration tests for multi-suite functionality."""
+
 import subprocess
 import sys
 from pathlib import Path
@@ -26,7 +27,7 @@ temperature: 0.5
 headless: true
 """)
     (suite1_dir / "00-test.md").write_text("# Test 1\n\nTest step 1")
-    
+
     suite2_dir = tmp_path / "suite2"
     suite2_dir.mkdir()
     (suite2_dir / "suite.yaml").write_text("""
@@ -43,7 +44,7 @@ temperature: 0.5
 headless: true
 """)
     (suite2_dir / "00-test.md").write_text("# Test 2\n\nTest step 2")
-    
+
     # Run discover command
     result = subprocess.run(
         [sys.executable, "-m", "familiar", "discover", str(tmp_path)],
@@ -51,7 +52,7 @@ headless: true
         text=True,
         timeout=10,
     )
-    
+
     assert result.returncode == 0
     assert "Suite One" in result.stdout
     assert "Suite Two" in result.stdout
@@ -78,7 +79,7 @@ temperature: 0.5
 headless: true
 """)
     (suite_dir / "00-test.md").write_text("# Test\n\nTest step")
-    
+
     # Run discover with JSON format
     result = subprocess.run(
         [sys.executable, "-m", "familiar", "discover", str(tmp_path), "--format", "json"],
@@ -86,9 +87,9 @@ headless: true
         text=True,
         timeout=10,
     )
-    
+
     assert result.returncode == 0
-    
+
     # Should be valid JSON
     data = json.loads(result.stdout)
     assert isinstance(data, list)
@@ -96,7 +97,7 @@ headless: true
     assert data[0]["name"] == "JSON Test Suite"
 
 
-@pytest.mark.asyncio  
+@pytest.mark.asyncio
 async def test_run_specific_suite(tmp_path):
     """Test running a specific suite by path."""
     # Create multiple suites
@@ -115,7 +116,7 @@ temperature: 0.5
 headless: true
 """)
     (suite1_dir / "00-test.md").write_text("# Test 1\n\nTest step 1")
-    
+
     suite2_dir = tmp_path / "suite2"
     suite2_dir.mkdir()
     (suite2_dir / "suite.yaml").write_text("""
@@ -131,9 +132,9 @@ temperature: 0.5
 headless: true
 """)
     (suite2_dir / "00-test.md").write_text("# Test 2\n\nTest step 2")
-    
+
     pytest.skip("Requires network access for browser-use")
-    
+
     # Run only suite1
     result = subprocess.run(
         [sys.executable, "-m", "familiar", "run", str(suite1_dir)],
@@ -141,7 +142,7 @@ headless: true
         text=True,
         timeout=30,
     )
-    
+
     # Should complete (may pass or fail depending on LLM availability)
     assert result.returncode in [0, 1, 2]
     assert "Suite One" in result.stdout or "suite1" in result.stdout
@@ -152,10 +153,10 @@ async def test_run_all_suites(tmp_path):
     """Test running all suites with --all flag."""
     # Create multiple suites
     for i in range(2):
-        suite_dir = tmp_path / f"suite{i+1}"
+        suite_dir = tmp_path / f"suite{i + 1}"
         suite_dir.mkdir()
         (suite_dir / "suite.yaml").write_text(f"""
-name: Suite {i+1}
+name: Suite {i + 1}
 timeout: 30
 step_timeout: 10
 retry_policy:
@@ -166,8 +167,8 @@ fuzziness: 0.0
 temperature: 0.5
 headless: true
 """)
-        (suite_dir / "00-test.md").write_text(f"# Test {i+1}\n\nTest step")
-    
+        (suite_dir / "00-test.md").write_text(f"# Test {i + 1}\n\nTest step")
+
     # Run all suites (this will likely fail without API keys, but should execute)
     result = subprocess.run(
         [sys.executable, "-m", "familiar", "run", "--all", str(tmp_path)],
@@ -175,7 +176,6 @@ headless: true
         text=True,
         timeout=60,
     )
-    
+
     # Should attempt to run (exit code may vary)
     assert result.returncode in [0, 1, 2]
-

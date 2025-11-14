@@ -1,5 +1,5 @@
 """Main CLI entry point."""
-import json
+
 from pathlib import Path
 from typing import Optional
 
@@ -45,7 +45,7 @@ def run(
 ) -> None:
     """Run test suites."""
     from familiar.cli.run import run_suite_command
-    
+
     run_suite_command(
         suite_path_or_name=suite_path_or_name,
         run_all=run_all,
@@ -57,19 +57,15 @@ def run(
 
 
 @cli.command()
-@click.argument(
-    "directory", required=False, type=click.Path(exists=True, path_type=Path)
-)
+@click.argument("directory", required=False, type=click.Path(exists=True, path_type=Path))
 @click.option(
     "--format", "-f", type=click.Choice(["text", "json"]), default="text", help="Output format"
 )
-@click.option(
-    "--validate", is_flag=True, help="Validate suite configurations"
-)
+@click.option("--validate", is_flag=True, help="Validate suite configurations")
 def discover(directory: Optional[Path], format: str, validate: bool) -> None:
     """Discover test suites."""
     from familiar.formatters.json import JSONFormatter
-    
+
     root_dir = directory or Path("./familiar")
     discovery = TestSuiteDiscovery()
     suites = discovery.discover_suites(root_dir)
@@ -84,7 +80,7 @@ def discover(directory: Optional[Path], format: str, validate: bool) -> None:
                 # Basic validation - just check if we could parse it
                 click.echo(f"   ✓ Valid configuration")
             click.echo()
-        
+
         if validate:
             click.echo(f"✓ All {len(suites)} suites have valid configurations")
     else:
@@ -95,4 +91,3 @@ def discover(directory: Optional[Path], format: str, validate: bool) -> None:
 
 if __name__ == "__main__":
     cli()
-

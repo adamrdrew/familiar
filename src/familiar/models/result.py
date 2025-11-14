@@ -1,4 +1,5 @@
 """Test result models."""
+
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -149,42 +150,3 @@ class SuiteResult:
         if self.total_tests == 0:
             return 0.0
         return (self.passed_tests / self.total_tests) * 100.0
-
-
-@dataclass
-class TestRun:
-    """Result of a complete test run."""
-
-    run_id: str
-    command: str
-    suite_results: List[SuiteResult]
-    duration: float
-    started_at: datetime
-    completed_at: datetime
-    environment: Dict[str, str] = field(default_factory=dict)
-
-    @property
-    def success(self) -> bool:
-        """True if all suites passed."""
-        return all(sr.success for sr in self.suite_results)
-
-    @property
-    def exit_code(self) -> int:
-        """CLI exit code."""
-        return 0 if self.success else 1
-
-    @property
-    def total_suites(self) -> int:
-        """Number of suites executed."""
-        return len(self.suite_results)
-
-    @property
-    def passed_suites(self) -> int:
-        """Number of suites that passed."""
-        return sum(1 for sr in self.suite_results if sr.success)
-
-    @property
-    def failed_suites(self) -> int:
-        """Number of suites that failed."""
-        return sum(1 for sr in self.suite_results if not sr.success)
-

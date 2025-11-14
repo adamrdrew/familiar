@@ -9,6 +9,8 @@ Auto-generated from all feature plans. Last updated: 2025-11-13
 - N/A (bug fix only) (002-fix-langchain-browser-use-models)
 - Python 3.11+ (project supports 3.11, 3.12, 3.13) (005-github-actions-pr-checks)
 - N/A (CI workflow configuration only) (005-github-actions-pr-checks)
+- Python 3.11+ + browser-use>=0.9.5, click>=8.1.0, pydantic>=2.0.0, pyyaml>=6.0, rich>=13.0.0, python-dotenv>=1.0.0 (006-tech-debt-sprint)
+- File system (markdown test files, YAML configs) (006-tech-debt-sprint)
 
 ## Project Structure
 
@@ -41,9 +43,9 @@ uv run mypy src/                # Type check
 Python 3.11: Follow PEP 8, use type hints, write docstrings for public APIs
 
 ## Recent Changes
+- 006-tech-debt-sprint: Added Python 3.11+ + browser-use>=0.9.5, click>=8.1.0, pydantic>=2.0.0, pyyaml>=6.0, rich>=13.0.0, python-dotenv>=1.0.0
 - 005-github-actions-pr-checks: Added Python 3.11+ (project supports 3.11, 3.12, 3.13)
 - 002-fix-langchain-browser-use-models: Added Python 3.11+ + browser-use (with native model providers), playwrigh
-- 001-ai-e2e-testing: Added Python 3.11 + browser-use (Playwright-based browser automation with multi-provider LLM support), Click (CLI framework), PyYAML (config parsing), rich (terminal UI), pydantic (config validation)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

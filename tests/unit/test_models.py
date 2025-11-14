@@ -1,4 +1,5 @@
 """Test data models."""
+
 from datetime import datetime
 from pathlib import Path
 
@@ -86,7 +87,7 @@ def test_test_step_extracts_variables() -> None:
 def test_test_result_properties() -> None:
     """Test TestResult computed properties."""
     from familiar.models.result import ResultStatus
-    
+
     result = TestResult(
         step_name="Login",
         status=ResultStatus.PASSED,
@@ -102,7 +103,7 @@ def test_test_result_properties() -> None:
 def test_suite_result_success_with_zero_fuzziness() -> None:
     """Test suite success with no fuzziness."""
     from familiar.models.result import ResultStatus
-    
+
     result1 = TestResult(
         step_name="Step 1",
         status=ResultStatus.PASSED,
@@ -131,7 +132,7 @@ def test_suite_result_success_with_zero_fuzziness() -> None:
 def test_suite_result_success_with_fuzziness() -> None:
     """Test suite success calculation with fuzziness."""
     from familiar.models.result import ResultStatus
-    
+
     result1 = TestResult(
         step_name="Step 1",
         status=ResultStatus.PASSED,
@@ -200,15 +201,15 @@ def test_browser_profile_config_validation_too_long() -> None:
 def test_browser_profile_config_to_browser_profile() -> None:
     """Conversion to browser-use BrowserProfile should work."""
     from browser_use import BrowserProfile
-    
+
     config = BrowserProfileConfig(
         minimum_wait_page_load_time=0.5,
         wait_between_actions=0.3,
         headless=False,
     )
-    
+
     profile = config.to_browser_profile()
-    
+
     assert isinstance(profile, BrowserProfile)
     assert profile.minimum_wait_page_load_time == 0.5
     assert profile.wait_between_actions == 0.3
@@ -219,7 +220,7 @@ def test_suite_config_browser_profile_optional() -> None:
     """Suite config should work without browser_profile field."""
     config = SuiteConfig(name="Test Suite")
     assert config.browser_profile is None
-    
+
     # get_browser_profile() should return defaults
     profile = config.get_browser_profile()
     assert isinstance(profile, BrowserProfileConfig)
@@ -238,13 +239,12 @@ def test_suite_config_browser_profile_custom() -> None:
             headless=False,
         ),
     )
-    
+
     assert config.browser_profile is not None
     assert config.browser_profile.minimum_wait_page_load_time == 0.1
     assert config.browser_profile.wait_between_actions == 0.1
     assert config.browser_profile.headless is False
-    
+
     # get_browser_profile() should return the custom config
     profile = config.get_browser_profile()
     assert profile.minimum_wait_page_load_time == 0.1
-

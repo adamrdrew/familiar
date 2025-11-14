@@ -487,6 +487,7 @@ familiar discover <directory> [options]
 
 Options:
   --format TEXT        Output format: text, json (default: text)
+  --validate           Validate suite configurations
   --help              Show this message and exit
 ```
 
@@ -497,17 +498,9 @@ familiar discover familiar/
 
 # Get JSON output
 familiar discover familiar/ --format json
-```
 
-#### `familiar validate`
-
-Validate suite configurations.
-
-```bash
-familiar validate <suite_path>
-
-Options:
-  --help              Show this message and exit
+# Discover and validate configurations
+familiar discover familiar/ --validate
 ```
 
 #### `familiar --version`

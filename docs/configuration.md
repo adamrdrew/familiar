@@ -27,6 +27,9 @@ FAMILIAR_MODEL_PROVIDER="anthropic"  # Required
 - `anthropic` - Anthropic Claude (recommended)
 - `openai` - OpenAI GPT models
 - `google` or `gemini` - Google Gemini
+- `browser-use` - Browser Use optimized model (3-5x faster)
+- `groq` - Groq (fast inference with Llama models)
+- `azure` - Azure OpenAI
 - `ollama` - Local Ollama models
 
 #### Model Selection
@@ -67,8 +70,18 @@ ANTHROPIC_API_KEY="sk-ant-api03-..."
 # OpenAI
 OPENAI_API_KEY="sk-..."
 
-# Google
+# Google/Gemini
 GOOGLE_API_KEY="..."
+
+# Browser Use
+BROWSER_USE_API_KEY="..."  # Get from https://cloud.browser-use.com
+
+# Groq
+GROQ_API_KEY="..."
+
+# Azure OpenAI
+AZURE_OPENAI_ENDPOINT="https://your-endpoint.openai.azure.com/"
+AZURE_OPENAI_API_KEY="..."
 
 # Ollama (no key needed, but can set host)
 OLLAMA_HOST="http://localhost:11434"  # optional
@@ -346,6 +359,13 @@ familiar run <suite_path> [OPTIONS]
 - **Example**:
   ```bash
   familiar run tests/ --all
+  ```
+
+**`--fast`**
+- **Description**: Enable speed optimizations (flash mode, reduced wait times). May reduce reliability for complex scenarios.
+- **Example**:
+  ```bash
+  familiar run tests/login --fast
   ```
 
 ### `familiar discover`

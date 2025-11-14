@@ -1,4 +1,5 @@
 """Discover test suites in directory."""
+
 from pathlib import Path
 from typing import List, Optional
 
@@ -35,4 +36,3 @@ class TestSuiteDiscovery:
                 print(f"Warning: Failed to parse suite {suite_dir}: {e}")
 
         return sorted(suites, key=lambda s: s.path)
-
