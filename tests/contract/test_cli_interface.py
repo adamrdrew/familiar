@@ -3,6 +3,7 @@
 These tests validate that the CLI follows the interface specification
 defined in contracts/cli-interface.md.
 """
+
 import subprocess
 import sys
 
@@ -55,4 +56,3 @@ def test_discover_command_interface():
     assert result.returncode == 0
     assert "--format" in result.stdout
     assert "Discover test suites" in result.stdout
-

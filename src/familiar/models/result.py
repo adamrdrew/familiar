@@ -1,4 +1,5 @@
 """Test result models."""
+
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -149,4 +150,3 @@ class SuiteResult:
         if self.total_tests == 0:
             return 0.0
         return (self.passed_tests / self.total_tests) * 100.0
-

@@ -1,4 +1,5 @@
 """Test step models."""
+
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -33,4 +34,3 @@ class TestStep:
         pattern = r"\$\{([A-Z_][A-Z0-9_]*)(:-[^}]*)?\}"
         matches = re.findall(pattern, self.content)
         return {var for var, _ in matches}
-

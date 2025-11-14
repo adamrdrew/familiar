@@ -1,4 +1,5 @@
 """Test suite parser."""
+
 from pathlib import Path
 
 import pytest
@@ -91,4 +92,3 @@ def test_parse_steps_ordering(tmp_path: Path) -> None:
     assert suite.steps[0].order == 1
     assert suite.steps[1].order == 2
     assert suite.steps[2].order == 3
-
