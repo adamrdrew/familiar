@@ -65,33 +65,29 @@ class SuiteRunner:
         
         # Create browser and LLM ONCE for entire scenario
         # This enables cumulative testing (login → navigate → action)
+        # Note: browser-use handles browser cleanup automatically
         browser = Browser(headless=self.headless)
         llm = create_llm(temperature=suite.config.temperature)
         
-        try:
-            # Create executor with suite configuration
-            executor = StepExecutor(
-                variables=self.variables,
-                retry_policy=retry_policy,
-            )
-            
-            # Execute each step in sequence using the SAME browser
-            for step in suite.steps:
-                result = await executor.execute_step(
-                    step=step,
-                    browser=browser,
-                    llm=llm,
-                    timeout=suite.config.step_timeout,
-                )
-                test_results.append(result)
-                
-                # Stop on failure if fuzziness is 0.0 (no tolerance for failures)
-                if result.status.value == "failed" and suite.config.fuzziness == 0.0:
-                    break
+        # Create executor with suite configuration
+        executor = StepExecutor(
+            variables=self.variables,
+            retry_policy=retry_policy,
+        )
         
-        finally:
-            # Always close browser, even if steps fail
-            await browser.close()
+        # Execute each step in sequence using the SAME browser
+        for step in suite.steps:
+            result = await executor.execute_step(
+                step=step,
+                browser=browser,
+                llm=llm,
+                timeout=suite.config.step_timeout,
+            )
+            test_results.append(result)
+            
+            # Stop on failure if fuzziness is 0.0 (no tolerance for failures)
+            if result.status.value == "failed" and suite.config.fuzziness == 0.0:
+                break
         
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
