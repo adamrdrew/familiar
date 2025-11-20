@@ -70,6 +70,56 @@ def read_agent_instructions(path: Path) -> str | None:
         return None
 
 
+def read_system_prompt(path: Path) -> str | None:
+    """Read base system prompt from file.
+
+    Args:
+        path: Path to system_prompt.md file
+
+    Returns:
+        File content as string, or None if file doesn't exist or can't be read
+
+    Error Handling:
+        - File not found: Returns None with INFO log
+        - Encoding error: Returns None with WARNING log
+        - Permission error: Returns None with WARNING log
+        - Empty file: Returns None with INFO log
+    """
+    if not path.exists():
+        logger.info(f"System prompt file not found at {path}, using default behavior")
+        return None
+
+    # Check file size
+    try:
+        file_size = path.stat().st_size
+        if file_size == 0:
+            logger.info(f"System prompt file at {path} is empty")
+            return None
+    except OSError as e:
+        logger.warning(f"Could not stat system_prompt.md at {path}: {e}")
+        return None
+
+    # Read file with encoding fallback
+    try:
+        content = path.read_text(encoding="utf-8")
+        # Strip whitespace and return None if empty
+        content = content.strip()
+        return content if content else None
+    except UnicodeDecodeError:
+        try:
+            content = path.read_text(encoding="latin-1").strip()
+            if content:
+                logger.warning(f"system_prompt.md at {path} is not UTF-8, used latin-1 fallback")
+                return content
+            return None
+        except Exception as e:
+            logger.warning(f"Could not read system_prompt.md at {path}: {e}")
+            return None
+    except Exception as e:
+        logger.warning(f"Could not read system_prompt.md at {path}: {e}")
+        return None
+
+
 class SuiteParser:
     """Parse test suite from directory."""
 
