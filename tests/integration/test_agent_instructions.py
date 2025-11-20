@@ -57,10 +57,12 @@ base_url: http://example.com
             fast_mode=False,
             scenario_agent_override=True,
             global_agent_instructions="Global context",
+            base_system_prompt="Base prompt",
         )
 
         assert runner.scenario_agent_override is True
         assert runner.global_agent_instructions == "Global context"
+        assert runner.base_system_prompt == "Base prompt"
 
     def test_runner_with_fast_mode_and_agent_instructions(self):
         """Test runner combines fast mode with agent instructions."""
@@ -115,10 +117,11 @@ class TestAgentInstructionsContract:
     """Contract tests verifying behavior against spec."""
 
     def test_prompt_combination_order_contract(self):
-        """Verify prompt combination follows Fast → Global → Scenario order."""
+        """Verify prompt combination follows Base → Fast → Global → Scenario order."""
         from familiar.core.runner import SPEED_OPTIMIZATION_PROMPT, build_system_message
 
         result = build_system_message(
+            base_system_prompt=None,
             fast_mode=True,
             global_agent_md="GLOBAL",
             scenario_agent_md="SCENARIO",
@@ -141,6 +144,7 @@ class TestAgentInstructionsContract:
 
         # Without override: both global and scenario used
         result1 = build_system_message(
+            base_system_prompt=None,
             fast_mode=False,
             global_agent_md="GLOBAL",
             scenario_agent_md="SCENARIO",
@@ -151,6 +155,7 @@ class TestAgentInstructionsContract:
 
         # With override: only scenario used
         result2 = build_system_message(
+            base_system_prompt=None,
             fast_mode=False,
             global_agent_md="GLOBAL",
             scenario_agent_md="SCENARIO",
@@ -158,3 +163,26 @@ class TestAgentInstructionsContract:
         )
         assert "GLOBAL" not in result2
         assert "SCENARIO" in result2
+
+    def test_base_prompt_combination_order_contract(self):
+        """Verify base prompt comes first in combination order."""
+        from familiar.core.runner import build_system_message
+
+        result = build_system_message(
+            base_system_prompt="BASE",
+            fast_mode=True,
+            global_agent_md="GLOBAL",
+            scenario_agent_md="SCENARIO",
+            override_flag=False,
+        )
+
+        # Verify all components present
+        assert "BASE" in result
+        assert "Speed optimization" in result
+        assert "GLOBAL" in result
+        assert "SCENARIO" in result
+
+        # Verify order: Base → Fast → Global → Scenario
+        assert result.index("BASE") < result.index("Speed optimization")
+        assert result.index("Speed optimization") < result.index("GLOBAL")
+        assert result.index("GLOBAL") < result.index("SCENARIO")
