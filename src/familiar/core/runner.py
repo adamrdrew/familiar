@@ -1,17 +1,15 @@
 """Test suite execution orchestration."""
 
 from datetime import datetime
-from typing import Optional, Dict
 
-from browser_use import Browser, Agent
+from browser_use import Browser
 
-from familiar.models.suite import TestSuite
-from familiar.models.result import SuiteResult, TestResult
 from familiar.core.executor import StepExecutor
 from familiar.core.retry import create_retry_policy
-from familiar.utils.env import get_env_vars
+from familiar.models.result import SuiteResult, TestResult
+from familiar.models.suite import TestSuite
 from familiar.utils.browser import create_llm
-
+from familiar.utils.env import get_env_vars
 
 # Speed optimization prompt for fast mode
 SPEED_OPTIMIZATION_PROMPT = """
@@ -20,6 +18,53 @@ Speed optimization instructions:
 - Get to the goal as quickly as possible
 - Use multi-action sequences whenever possible to reduce steps
 """
+
+
+def build_system_message(
+    base_system_prompt: str | None,
+    fast_mode: bool,
+    global_agent_md: str | None,
+    scenario_agent_md: str | None,
+    override_flag: bool,
+) -> str | None:
+    """Build combined system message from base prompt, fast mode and agent instructions.
+
+    Combines components in priority order:
+    1. Base system prompt (foundational instructions)
+    2. Fast mode prompt (behavioral instructions)
+    3. Global agent instructions (app-wide context)
+    4. Scenario agent instructions (test-specific context)
+
+    Args:
+        base_system_prompt: Base system prompt from system_prompt.md (or None).
+        fast_mode: Whether fast mode is enabled.
+        global_agent_md: Global agent instructions content (or None).
+        scenario_agent_md: Scenario agent instructions content (or None).
+        override_flag: If True, ignore global_agent_md when scenario_agent_md exists.
+
+    Returns:
+        Combined system message string, or None if no components present.
+    """
+    components = []
+
+    # 1. Base system prompt (foundational instructions)
+    if base_system_prompt:
+        components.append(base_system_prompt)
+
+    # 2. Behavioral instructions (fast mode)
+    if fast_mode:
+        components.append(SPEED_OPTIMIZATION_PROMPT)
+
+    # 3. General context (global agent.md)
+    # Only skip global if override is set AND scenario exists
+    if global_agent_md and not (override_flag and scenario_agent_md):
+        components.append(global_agent_md)
+
+    # 4. Specific context (scenario agent.md)
+    if scenario_agent_md:
+        components.append(scenario_agent_md)
+
+    return "\n\n".join(components) if components else None
 
 
 class SuiteRunner:
@@ -35,9 +80,12 @@ class SuiteRunner:
 
     def __init__(
         self,
-        variables: Optional[Dict[str, str]] = None,
+        variables: dict[str, str] | None = None,
         headless: bool = True,
         fast_mode: bool = False,
+        scenario_agent_override: bool = False,
+        global_agent_instructions: str | None = None,
+        base_system_prompt: str | None = None,
     ):
         """Initialize the suite runner.
 
@@ -46,10 +94,16 @@ class SuiteRunner:
                       If None, will load from os.environ.
             headless: Whether to run browser in headless mode.
             fast_mode: Whether to enable speed optimizations (flash mode, speed prompts).
+            scenario_agent_override: Whether to use only scenario-level agent instructions.
+            global_agent_instructions: Global agent instructions from familiar root.
+            base_system_prompt: Base system prompt from system_prompt.md.
         """
         self.variables = variables if variables is not None else get_env_vars()
         self.headless = headless
         self.fast_mode = fast_mode
+        self.scenario_agent_override = scenario_agent_override
+        self.global_agent_instructions = global_agent_instructions
+        self.base_system_prompt = base_system_prompt
 
     async def run_suite(self, suite: TestSuite) -> SuiteResult:
         """Execute all steps in a test suite with retry support.
@@ -103,9 +157,15 @@ class SuiteRunner:
 
         # Execute each step in sequence using the SAME browser
         for step in suite.steps:
-            # Prepare fast mode parameters
+            # Build combined system message from base prompt + fast mode + agent instructions
             flash_mode = self.fast_mode
-            extend_system_message = SPEED_OPTIMIZATION_PROMPT if self.fast_mode else None
+            extend_system_message = build_system_message(
+                base_system_prompt=self.base_system_prompt,
+                fast_mode=self.fast_mode,
+                global_agent_md=self.global_agent_instructions,
+                scenario_agent_md=suite.agent_instructions,
+                override_flag=self.scenario_agent_override,
+            )
 
             result = await executor.execute_step(
                 step=step,

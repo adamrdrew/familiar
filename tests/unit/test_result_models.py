@@ -1,7 +1,6 @@
 """Unit tests for result model properties and calculations."""
 
-from datetime import datetime
-from familiar.models.result import TestResult, SuiteResult, ResultStatus
+from familiar.models.result import ResultStatus, SuiteResult, TestResult
 
 
 class TestTestResult:

@@ -1,10 +1,9 @@
 """Variable interpolation utilities for test steps."""
 
 import re
-from typing import Dict
 
 
-def interpolate_variables(text: str, variables: Dict[str, str]) -> str:
+def interpolate_variables(text: str, variables: dict[str, str]) -> str:
     """Interpolate ${VAR} style variables in text.
 
     Replaces all occurrences of ${VAR_NAME} with values from the variables dict.

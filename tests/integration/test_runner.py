@@ -1,9 +1,8 @@
 """Integration tests for test execution."""
 
 import pytest
-from pathlib import Path
+
 from familiar.core.parser import SuiteParser
-from familiar.models.result import TestResult, ResultStatus
 
 
 @pytest.mark.asyncio

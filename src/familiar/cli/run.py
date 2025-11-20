@@ -3,7 +3,6 @@
 import asyncio
 import sys
 from pathlib import Path
-from typing import Optional
 
 import click
 
@@ -18,6 +17,9 @@ async def run_suite_async(
     headless: bool,
     verbose: bool,
     fast_mode: bool = False,
+    scenario_agent_override: bool = False,
+    global_agent_instructions: str | None = None,
+    base_system_prompt: str | None = None,
 ) -> int:
     """Run a single test suite asynchronously.
 
@@ -26,6 +28,9 @@ async def run_suite_async(
         headless: Whether to run browser in headless mode.
         verbose: Whether to show detailed logs.
         fast_mode: Whether to enable speed optimizations.
+        scenario_agent_override: Whether to use only scenario-level agent instructions.
+        global_agent_instructions: Global agent instructions from familiar root.
+        base_system_prompt: Base system prompt from system_prompt.md.
 
     Returns:
         Exit code (0 for success, 1 for failure).
@@ -43,7 +48,13 @@ async def run_suite_async(
         click.echo(f"\n🚀 Running test suite: [bold]{suite.name}[/bold]{mode_indicator}\n", nl=True)
 
         # Run the suite
-        runner = SuiteRunner(headless=headless, fast_mode=fast_mode)
+        runner = SuiteRunner(
+            headless=headless,
+            fast_mode=fast_mode,
+            scenario_agent_override=scenario_agent_override,
+            global_agent_instructions=global_agent_instructions,
+            base_system_prompt=base_system_prompt,
+        )
         result = await runner.run_suite(suite)
 
         # Format and display results
@@ -71,6 +82,9 @@ async def run_all_suites_async(
     verbose: bool,
     format: str,
     fast_mode: bool = False,
+    scenario_agent_override: bool = False,
+    global_agent_instructions: str | None = None,
+    base_system_prompt: str | None = None,
 ) -> int:
     """Run all test suites in a directory asynchronously.
 
@@ -80,6 +94,9 @@ async def run_all_suites_async(
         verbose: Whether to show detailed logs.
         format: Output format (text, json, junit).
         fast_mode: Whether to enable speed optimizations.
+        scenario_agent_override: Whether to use only scenario-level agent instructions.
+        global_agent_instructions: Global agent instructions from familiar root.
+        base_system_prompt: Base system prompt from system_prompt.md.
 
     Returns:
         Exit code (0 if all pass, 1 if any fail).
@@ -103,7 +120,13 @@ async def run_all_suites_async(
     click.echo(f"\n🚀 Running {len(suites)} test suites from: {directory}{mode_indicator}\n")
 
     # Run each suite
-    runner = SuiteRunner(headless=headless, fast_mode=fast_mode)
+    runner = SuiteRunner(
+        headless=headless,
+        fast_mode=fast_mode,
+        scenario_agent_override=scenario_agent_override,
+        global_agent_instructions=global_agent_instructions,
+        base_system_prompt=base_system_prompt,
+    )
     results = []
     formatter = TextFormatter(verbose=verbose)
 
@@ -163,12 +186,13 @@ async def run_all_suites_async(
 
 
 def run_suite_command(
-    suite_path_or_name: Optional[str],
+    suite_path_or_name: str | None,
     run_all: bool,
     format: str,
     headless: bool,
     verbose: bool,
     fast_mode: bool = False,
+    scenario_agent_override: bool = False,
 ) -> None:
     """Run test suites command handler.
 
@@ -179,10 +203,30 @@ def run_suite_command(
         headless: Whether to run browser in headless mode.
         verbose: Whether to show detailed logs.
         fast_mode: Whether to enable speed optimizations.
+        scenario_agent_override: Whether to use only scenario-level agent instructions.
     """
     if format == "junit":
-        click.echo(f"⚠️  Format 'junit' not yet implemented, using text", err=True)
+        click.echo("⚠️  Format 'junit' not yet implemented, using text", err=True)
         format = "text"
+
+    # Discover global agent instructions and base system prompt
+    from familiar.core.parser import read_agent_instructions, read_system_prompt
+
+    root_dir = Path("./familiar")  # Default familiar root
+    if run_all and suite_path_or_name:
+        root_dir = Path(suite_path_or_name)
+    elif not run_all and suite_path_or_name:
+        # For single suite, find the parent directory (familiar root)
+        suite_path = Path(suite_path_or_name)
+        if suite_path.is_dir() and (suite_path / "suite.yaml").exists():
+            root_dir = suite_path.parent
+
+    global_agent_instructions = read_agent_instructions(root_dir / "agent.md")
+    
+    # Read base system prompt from repo root (not familiar root)
+    # Find repo root by looking for .git directory or use current directory
+    repo_root = Path.cwd()
+    base_system_prompt = read_system_prompt(repo_root / "system_prompt.md")
 
     # Handle --all flag
     if run_all:
@@ -207,6 +251,9 @@ def run_suite_command(
                 verbose=verbose,
                 format=format,
                 fast_mode=fast_mode,
+                scenario_agent_override=scenario_agent_override,
+                global_agent_instructions=global_agent_instructions,
+                base_system_prompt=base_system_prompt,
             )
         )
         sys.exit(exit_code)
@@ -230,6 +277,9 @@ def run_suite_command(
             headless=headless,
             verbose=verbose,
             fast_mode=fast_mode,
+            scenario_agent_override=scenario_agent_override,
+            global_agent_instructions=global_agent_instructions,
+            base_system_prompt=base_system_prompt,
         )
     )
 

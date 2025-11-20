@@ -1,23 +1,23 @@
 """Step execution with browser-use integration."""
 
 import asyncio
-from datetime import datetime
-from typing import Optional, Dict, List, Any
 import traceback
+from datetime import datetime
+from typing import Any
 
-from browser_use import Browser, Agent
+from browser_use import Agent, Browser
 
-from familiar.models.step import TestStep
+from familiar.core.retry import FixedRetry, RetryPolicy
 from familiar.models.result import (
-    TestResult,
-    ResultStatus,
+    ActionType,
+    BrowserAction,
     LogEntry,
     LogLevel,
-    BrowserAction,
-    ActionType,
+    ResultStatus,
+    TestResult,
 )
+from familiar.models.step import TestStep
 from familiar.utils.interpolation import interpolate_variables
-from familiar.core.retry import RetryPolicy, FixedRetry
 
 
 class StepExecutor:
@@ -34,8 +34,8 @@ class StepExecutor:
 
     def __init__(
         self,
-        variables: Optional[Dict[str, str]] = None,
-        retry_policy: Optional[RetryPolicy] = None,
+        variables: dict[str, str] | None = None,
+        retry_policy: RetryPolicy | None = None,
     ):
         """Initialize the step executor.
 
@@ -55,7 +55,7 @@ class StepExecutor:
         llm: Any,
         timeout: int = 60,
         flash_mode: bool = False,
-        extend_system_message: Optional[str] = None,
+        extend_system_message: str | None = None,
     ) -> TestResult:
         """Execute a single test step with retry support.
 
@@ -75,7 +75,7 @@ class StepExecutor:
             For retries, returns the first successful result or the last failure.
         """
         attempt = 0
-        all_logs: List[LogEntry] = []
+        all_logs: list[LogEntry] = []
 
         while True:
             if attempt > 0:
@@ -121,7 +121,7 @@ class StepExecutor:
         timeout: int,
         attempt: int,
         flash_mode: bool = False,
-        extend_system_message: Optional[str] = None,
+        extend_system_message: str | None = None,
     ) -> TestResult:
         """Execute a single attempt of a test step.
 
@@ -251,7 +251,7 @@ class StepExecutor:
                     attempt=attempt,
                 )
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logs.append(
                     LogEntry(
                         level=LogLevel.ERROR,

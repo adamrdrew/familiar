@@ -72,6 +72,13 @@ Configure your preferred LLM provider via environment variables (powered by [bro
 - **Validation**: Lint suite configurations before running
 - **Logging**: Detailed execution logs with retry tracking
 
+### Agent Instructions
+Provide custom context to the AI agent to improve test execution:
+- **Global Instructions** (`agent.md` in familiar root): Shared context for all tests
+- **Scenario Instructions** (`agent.md` in scenario dir): Test-specific context
+- **Automatic Combination**: Global and scenario instructions combine intelligently
+- **Override Control** (`--scenario-agent-override` flag): Use only scenario-level instructions
+
 ### Performance Optimization
 Speed up test execution with performance controls:
 - **Fast Mode** (`--fast` flag): Enable LLM flash mode and speed-optimized prompts (2-3x faster)
@@ -446,12 +453,13 @@ Run one or more test suites.
 familiar run <suite_path> [options]
 
 Options:
-  --format TEXT        Output format: text, json (default: text)
-  --headless / --no-headless  Run browser in headless mode (default: headless)
-  --verbose / --no-verbose    Show detailed logs (default: no-verbose)
-  --fast               Enable fast mode (flash_mode + speed prompt, ~2-3x faster)
-  --all                Run all suites in directory
-  --help               Show this message and exit
+  --format TEXT                    Output format: text, json (default: text)
+  --headless / --no-headless       Run browser in headless mode (default: headless)
+  --verbose / --no-verbose         Show detailed logs (default: no-verbose)
+  --fast                           Enable fast mode (flash_mode + speed prompt, ~2-3x faster)
+  --scenario-agent-override        Use only scenario-level agent.md (ignore global agent.md)
+  --all                            Run all suites in directory
+  --help                           Show this message and exit
 ```
 
 **Examples:**
@@ -584,6 +592,171 @@ EOF
 cp .env.staging .env
 familiar run tests/
 ```
+
+---
+
+## 🧠 Agent Instructions
+
+Provide custom context and guidance to the AI agent to improve test execution. Agent instructions are written in Markdown and automatically loaded.
+
+### How It Works
+
+Agent instructions allow you to give the AI agent important context about your application, testing environment, or specific scenarios. The agent combines these instructions with your test steps to make better decisions.
+
+**Three types of instructions:**
+
+1. **Fast Mode Prompt** (`--fast` flag): Built-in behavioral instructions for speed
+2. **Global Instructions** (`agent.md` in familiar root): Application-wide context
+3. **Scenario Instructions** (`agent.md` in scenario directory): Test-specific context
+
+**Combination order:** Fast Mode → Global → Scenario (most general to most specific)
+
+### Global Agent Instructions
+
+Create `agent.md` in your `familiar/` directory to provide context shared across all tests:
+
+```markdown
+<!-- familiar/agent.md -->
+
+# Application Context
+
+This is a SaaS project management application with the following key features:
+
+## Authentication
+- Uses SSO with Microsoft Azure AD
+- Session timeout is 30 minutes
+- Login page redirects to /dashboard after authentication
+
+## Navigation
+- Main navigation is a sidebar on the left
+- Mobile view collapses sidebar into hamburger menu
+- Search bar is always visible in top-right
+
+## Known Issues
+- Dashboard loads slowly (3-5 seconds typical)
+- Notifications dropdown sometimes needs a second click
+- Modal dialogs fade in over 500ms
+
+## Test Data
+- Test users are in format: test+{name}@company.com
+- Default test workspace is "QA Workspace"
+- Test projects are prefixed with "TEST-"
+```
+
+### Scenario Agent Instructions
+
+Create `agent.md` in a scenario directory for test-specific context:
+
+```markdown
+<!-- familiar/checkout-flow/agent.md -->
+
+# Checkout Flow Specifics
+
+This test validates the e-commerce checkout process.
+
+## Important Notes
+- Cart must have at least 1 item before checkout
+- Payment form uses Stripe test mode (card: 4242 4242 4242 4242)
+- Shipping address validation is strict (use real US ZIP codes)
+- Order confirmation can take 5-10 seconds to appear
+
+## Test Data
+- Test credit card: 4242 4242 4242 4242
+- Expiry: Any future date
+- CVV: Any 3 digits
+- ZIP: Use 94105 (valid San Francisco ZIP)
+
+## Common Issues
+- Sometimes the "Place Order" button needs a brief wait before clicking
+- If payment fails, refresh the page and try again
+```
+
+### Using Agent Instructions
+
+**Basic usage** (both global and scenario instructions combined):
+```bash
+familiar run familiar/checkout-flow
+# Agent receives: Global context + Scenario context + Test steps
+```
+
+**With fast mode** (adds speed instructions):
+```bash
+familiar run familiar/checkout-flow --fast
+# Agent receives: Fast prompt + Global context + Scenario context + Test steps
+```
+
+**Scenario override** (ignore global, use only scenario):
+```bash
+familiar run familiar/checkout-flow --scenario-agent-override
+# Agent receives: Scenario context only + Test steps
+# Useful when scenario instructions conflict with global instructions
+```
+
+### Best Practices
+
+**DO:**
+- ✅ Keep instructions concise and relevant
+- ✅ Focus on behavior-specific details the AI can't see
+- ✅ Mention timing quirks, delays, or flaky UI elements
+- ✅ Provide test data formats and requirements
+- ✅ Note authentication flows and session handling
+- ✅ Document known issues or workarounds
+
+**DON'T:**
+- ❌ Include step-by-step instructions (those go in your .md test files)
+- ❌ Repeat information visible in the UI
+- ❌ Make files too large (keep under 100KB, preferably much smaller)
+- ❌ Include sensitive data (use environment variables instead)
+
+### Example: Complete Setup
+
+**Directory structure:**
+```
+project/
+├── familiar/
+│   ├── agent.md                    # Global instructions
+│   ├── login-test/
+│   │   ├── agent.md               # Scenario-specific instructions
+│   │   ├── suite.yaml
+│   │   ├── 00-navigate.md
+│   │   └── 01-login.md
+│   └── checkout-flow/
+│       ├── agent.md               # Different scenario instructions
+│       ├── suite.yaml
+│       └── *.md steps
+└── .env                           # Secrets and variables
+```
+
+**Global agent.md:**
+```markdown
+# MyApp Testing Context
+
+## Authentication
+- Uses OAuth2 with Google
+- Test account: ${TEST_USER} (from .env)
+- Session persists for 1 hour
+
+## UI Behavior
+- All pages lazy-load content (wait for spinners to disappear)
+- Modals have 300ms fade-in animation
+- Auto-save triggers 2 seconds after typing stops
+```
+
+**Scenario agent.md:**
+```markdown
+# Checkout Flow Notes
+
+## Payment Processing
+- Test mode uses Stripe test cards
+- Processing takes 3-5 seconds
+- Success redirect goes to /orders/{id}
+
+## Known Quirks
+- Cart totals update with 500ms debounce
+- Shipping form validates on blur, not on submit
+```
+
+**Result:** The AI agent receives layered context that helps it handle timing, find elements correctly, and adapt to your application's specific behavior.
 
 ---
 

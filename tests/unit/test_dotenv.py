@@ -1,8 +1,7 @@
 """Unit tests for .env file loading."""
 
 import os
-import pytest
-from pathlib import Path
+
 from familiar.utils.dotenv import load_dotenv_file
 
 

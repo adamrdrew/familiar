@@ -1,7 +1,7 @@
 """JSON formatter for machine-readable test results."""
 
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 from familiar.models.result import SuiteResult, TestResult
 
@@ -36,7 +36,7 @@ class JSONFormatter:
             return json.dumps(data, indent=2, default=str)
         return json.dumps(data, default=str)
 
-    def format_discovery(self, suites: List[Any]) -> str:
+    def format_discovery(self, suites: list[Any]) -> str:
         """Format suite discovery results as JSON.
 
         Args:
@@ -60,7 +60,7 @@ class JSONFormatter:
             return json.dumps(data, indent=2, default=str)
         return json.dumps(data, default=str)
 
-    def _suite_to_dict(self, result: SuiteResult) -> Dict[str, Any]:
+    def _suite_to_dict(self, result: SuiteResult) -> dict[str, Any]:
         """Convert SuiteResult to dictionary.
 
         Args:
@@ -84,7 +84,7 @@ class JSONFormatter:
             "tests": [self._test_to_dict(test) for test in result.test_results],
         }
 
-    def _test_to_dict(self, test: TestResult) -> Dict[str, Any]:
+    def _test_to_dict(self, test: TestResult) -> dict[str, Any]:
         """Convert TestResult to dictionary.
 
         Args:

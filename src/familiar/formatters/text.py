@@ -1,13 +1,11 @@
 """Text formatter for human-readable test results."""
 
-from typing import Optional
-
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
+from rich.table import Table
 from rich.text import Text
 
-from familiar.models.result import SuiteResult, TestResult, ResultStatus
+from familiar.models.result import ResultStatus, SuiteResult
 
 
 class TextFormatter:

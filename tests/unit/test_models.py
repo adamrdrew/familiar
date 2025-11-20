@@ -1,6 +1,5 @@
 """Test data models."""
 
-from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -8,7 +7,7 @@ from pydantic import ValidationError
 
 from familiar.models.result import SuiteResult, TestResult
 from familiar.models.step import TestStep
-from familiar.models.suite import BrowserProfileConfig, RetryPolicyConfig, SuiteConfig, TestSuite
+from familiar.models.suite import BrowserProfileConfig, RetryPolicyConfig, SuiteConfig
 
 
 def test_suite_config_validates_timeout() -> None:

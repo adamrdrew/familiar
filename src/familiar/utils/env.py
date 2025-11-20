@@ -1,10 +1,9 @@
 """Environment variable utilities."""
 
 import os
-from typing import Dict, Any
 
 
-def get_env_vars(prefix: str = "") -> Dict[str, str]:
+def get_env_vars(prefix: str = "") -> dict[str, str]:
     """Get environment variables, optionally filtered by prefix.
 
     Args:

@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class LogLevel(Enum):
@@ -43,7 +43,7 @@ class LogEntry:
     timestamp: datetime
     level: LogLevel
     message: str
-    context: Dict[str, Any] = field(default_factory=dict)
+    context: dict[str, Any] = field(default_factory=dict)
     source: str = "familiar"
 
 
@@ -54,9 +54,9 @@ class BrowserAction:
     type: ActionType
     timestamp: datetime
     success: bool
-    target: Optional[str] = None
-    value: Optional[str] = None
-    error: Optional[str] = None
+    target: str | None = None
+    value: str | None = None
+    error: str | None = None
 
 
 @dataclass
@@ -66,12 +66,12 @@ class TestResult:
     step_name: str
     status: ResultStatus
     duration: float
-    logs: List[LogEntry] = field(default_factory=list)
-    browser_actions: List[BrowserAction] = field(default_factory=list)
-    error_message: Optional[str] = None
-    step_path: Optional[Path] = None
+    logs: list[LogEntry] = field(default_factory=list)
+    browser_actions: list[BrowserAction] = field(default_factory=list)
+    error_message: str | None = None
+    step_path: Path | None = None
     attempt: int = 1
-    screenshot_path: Optional[Path] = None
+    screenshot_path: Path | None = None
 
     @property
     def success(self) -> bool:
@@ -99,12 +99,12 @@ class SuiteResult:
     """Result of executing a test suite."""
 
     suite_name: str
-    test_results: List[TestResult]
+    test_results: list[TestResult]
     total_duration: float
     fuzziness: float = 0.0
-    suite_path: Optional[Path] = None
+    suite_path: Path | None = None
     run_timestamp: datetime = field(default_factory=datetime.now)
-    config: Dict[str, Any] = field(default_factory=dict)
+    config: dict[str, Any] = field(default_factory=dict)
 
     @property
     def success(self) -> bool:

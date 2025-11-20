@@ -1,10 +1,8 @@
 """Integration tests for CLI with .env file loading."""
 
 import os
-import sys
 import subprocess
-from pathlib import Path
-import pytest
+import sys
 
 
 def test_cli_loads_dotenv_before_execution(tmp_path, monkeypatch):

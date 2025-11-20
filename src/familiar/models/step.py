@@ -3,7 +3,7 @@
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional, Set
+from typing import Any
 
 
 @dataclass
@@ -13,8 +13,8 @@ class TestStep:
     path: Path
     content: str
     order: int
-    timeout: Optional[int] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    timeout: int | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def name(self) -> str:
@@ -29,7 +29,7 @@ class TestStep:
         return self.path.stem
 
     @property
-    def variables(self) -> Set[str]:
+    def variables(self) -> set[str]:
         """Extract all ${VAR} references from content."""
         pattern = r"\$\{([A-Z_][A-Z0-9_]*)(:-[^}]*)?\}"
         matches = re.findall(pattern, self.content)

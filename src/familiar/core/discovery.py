@@ -1,7 +1,6 @@
 """Discover test suites in directory."""
 
 from pathlib import Path
-from typing import List, Optional
 
 from familiar.core.parser import SuiteParser
 from familiar.models.suite import TestSuite
@@ -10,11 +9,11 @@ from familiar.models.suite import TestSuite
 class TestSuiteDiscovery:
     """Discover test suites in a directory tree."""
 
-    def __init__(self, parser: Optional[SuiteParser] = None):
+    def __init__(self, parser: SuiteParser | None = None):
         """Initialize with optional parser (dependency injection)."""
         self.parser = parser or SuiteParser()
 
-    def discover_suites(self, root_dir: Path) -> List[TestSuite]:
+    def discover_suites(self, root_dir: Path) -> list[TestSuite]:
         """Discover all test suites under root directory."""
         if not root_dir.is_dir():
             raise ValueError(f"Root directory does not exist: {root_dir}")

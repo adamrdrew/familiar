@@ -1,9 +1,8 @@
 """Integration tests for retry functionality."""
 
 import pytest
-from pathlib import Path
 
-from familiar.core.retry import FixedRetry, ExponentialBackoff, BestOfN, create_retry_policy
+from familiar.core.retry import BestOfN, ExponentialBackoff, FixedRetry, create_retry_policy
 from familiar.models.suite import RetryPolicyConfig
 
 
